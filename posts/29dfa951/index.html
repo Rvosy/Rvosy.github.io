@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>使用VSCode开发STM32(EIDE插件) | Rvosy的小破站</title><meta name="author" content="Rvosy"><meta name="copyright" content="Rvosy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="前言在使用了几个月的Keil对51和32的学习之后, 实在受不了Keil古老的界面. 在做项目时就开始思考能不能使用VSCode替代Keil对51 32等嵌入式ARM架构的芯片进行编程和调试. 经过一番查找便发现有个插件可以完美符合我的要求  使用该插件前请至少要熟悉Keil的各种操作与配置, 因为开发团队项目时, 不是所有人都使用VSCode进行开发, 大部分人仍然使用的是Keil. 为了避免陷">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用VSCode开发STM32(EIDE插件)">
+<meta property="og:url" content="https://cialloo.cn/posts/29dfa951/index.html">
+<meta property="og:site_name" content="Rvosy的小破站">
+<meta property="og:description" content="前言在使用了几个月的Keil对51和32的学习之后, 实在受不了Keil古老的界面. 在做项目时就开始思考能不能使用VSCode替代Keil对51 32等嵌入式ARM架构的芯片进行编程和调试. 经过一番查找便发现有个插件可以完美符合我的要求  使用该插件前请至少要熟悉Keil的各种操作与配置, 因为开发团队项目时, 不是所有人都使用VSCode进行开发, 大部分人仍然使用的是Keil. 为了避免陷">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oss.cialloo.cn/img/5.webp">
+<meta property="article:published_time" content="2024-10-14T10:40:00.000Z">
+<meta property="article:modified_time" content="2025-12-26T17:57:12.563Z">
+<meta property="article:author" content="Rvosy">
+<meta property="article:tag" content="STM32">
+<meta property="article:tag" content="VSCode">
+<meta property="article:tag" content="EIDE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oss.cialloo.cn/img/5.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://cialloo.cn/posts/29dfa951/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/egjs-infinitegrid/4.12.0/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '使用VSCode开发STM32(EIDE插件)',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-12-27 01:57:12'
+}</script><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="1" onerror="localStorage.setItem('modelId','0')" style="display:none;"><link rel="stylesheet" href="https://oss.cialloo.cn/css/universe.min.css"><link rel="stylesheet" href="/css/custom.css"><span id="fps"></span><link rel="stylesheet" href="/css/font.css"><style>
+  body {
+    font-family: "LXGWWenKaiLite-Medium",-apple-system, Microsoft Yahei, sans-serif;
+    font-size: 16px;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://oss.cialloo.cn/img/84136296_p0.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png" alt="Logo"><span class="site-name">Rvosy的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">使用VSCode开发STM32(EIDE插件)</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">使用VSCode开发STM32(EIDE插件)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-14T10:40:00.000Z" title="发表于 2024-10-14 18:40:00">2024-10-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-26T17:57:12.563Z" title="更新于 2025-12-27 01:57:12">2025-12-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">992</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在使用了几个月的Keil对51和32的学习之后, 实在受不了Keil古老的界面. 在做项目时就开始思考能不能使用VSCode替代Keil对51 32等嵌入式ARM架构的芯片进行编程和调试. 经过一番查找便发现有个插件可以完美符合我的要求</p>
+<blockquote>
+<p>使用该插件前请至少要熟悉Keil的各种操作与配置, 因为开发团队项目时, 不是所有人都使用VSCode进行开发, 大部分人仍然使用的是Keil. 为了避免陷入无法和团队成员共同开发的尴尬场面, 所以请一定要熟悉好Keil再来使用本插件</p>
+</blockquote>
+<h1 id="插件介绍"><a href="#插件介绍" class="headerlink" title="插件介绍"></a>插件介绍</h1><h2 id="Embedded-IDE"><a href="#Embedded-IDE" class="headerlink" title="Embedded IDE"></a><a target="_blank" rel="noopener" href="https://em-ide.com/">Embedded IDE</a></h2><p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014190911138.png" alt="image-20241014190911138"></p>
+<p>一款适用于 8051&#x2F;STM8&#x2F;Cortex-M&#x2F;MIPS&#x2F;RISC-V 的单片机开发环境。</p>
+<p>在 VSCode 上提供 <strong>8051</strong>, <strong>AVR</strong>, <strong>STM8</strong>, <strong>Cortex-M</strong>, <strong>MIPS MTI</strong>, <strong>RISC-V</strong> … 项目的 开发, 编译, 烧录 等功能。</p>
+<p>支持的平台:</p>
+<ul>
+<li><strong>Windows x64 (&gt;&#x3D; Windows 10)</strong></li>
+<li><strong>Linux x64</strong></li>
+<li><strong>macOS</strong>（仅在 ‘macOS 10.15 x64’ 中测试过）</li>
+</ul>
+<h3 id="功能特性-🎉"><a href="#功能特性-🎉" class="headerlink" title="功能特性 🎉"></a>功能特性 🎉</h3><ul>
+<li>支持开发 8051，STM8，AVR，Cortex-M，MIPS MTI, RISC-V, AnyGcc 项目。</li>
+<li>支持导入 KEIL5&#x2F;IAR&#x2F;Eclipse 项目，支持导入 <code>IAR-STM8, IAR-ARM, Segger Embedded Studio</code> 项目源文件资源树。</li>
+<li>支持安装标准的 KEIL 芯片支持包 (仅用于 Cortex-M 项目)。</li>
+<li>提供丰富的项目模板方便快速开始项目。</li>
+<li>一键编译，支持多种主流的编译工具 (<strong>armcc, gcc-arm-none-eabi, riscv-gcc, xxx-gcc, keil_c51, sdcc …</strong>)。</li>
+<li>一键烧录到芯片，支持多种主流的烧录器 (<strong>jlink, stlink, openocd, pyocd …</strong>)。</li>
+<li><del>内置的串口监视器，一键打开串口</del>（建议使用 <code>Serial Monitor</code> 插件）。</li>
+<li>支持使用 <strong>Cppcheck</strong> 对项目进行静态检查。</li>
+<li>自动生成默认调试配置，为调试器插件 Cortex-debug &#x2F; STM8-debug 生成默认配置。</li>
+<li>内置多种实用工具，<code>CMSIS Config Wizard UI</code>, <code>反汇编查看</code>，<code>程序资源视图</code> …</li>
+<li>内置 C&#x2F;C++ 插件的 <code>C/C++ IntelliSense Provider</code>，<strong>无需配置</strong> <code>c_cpp_properties.json</code> 即可获得源码跳转，补全提示功能。</li>
+<li>内置 Msys Unix Shell 环境，方便执行 shell 命令或脚本</li>
+</ul>
+<h1 id="插件列表"><a href="#插件列表" class="headerlink" title="插件列表"></a>插件列表</h1><h3 id="必备插件"><a href="#必备插件" class="headerlink" title="必备插件"></a>必备插件</h3><ul>
+<li><strong>Embedded IDE</strong></li>
+<li><strong>C&#x2F;C++ Extension Pack</strong></li>
+<li><strong>Cortex Debug</strong> (调试工具)</li>
+</ul>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014191713821.png" alt="image-20241014191713821"></p>
+<h3 id="推荐插件"><a href="#推荐插件" class="headerlink" title="推荐插件"></a>推荐插件</h3><ul>
+<li><p><strong>Error Lens</strong></p>
+<p>可以讲报错信息嵌入至代码当中, 十分方便</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014191739679.png" alt="img"></p>
+</li>
+</ul>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014190537676.png" alt="image-20241014190537676"></p>
+<h1 id="EIDE配置"><a href="#EIDE配置" class="headerlink" title="EIDE配置"></a>EIDE配置</h1><ol>
+<li>插件配置</li>
+</ol>
+<blockquote>
+<ul>
+<li>下载必备工具: 实用工具: <strong>CppCheck, OpenOCD Programmer, GNU Arm Emdedded Toolchain(stable)</strong> </li>
+<li>配置EIDE: 搜索栏输入:elf. 打勾下列选项<ul>
+<li><input checked="" disabled="" type="checkbox"> Convert<code> .axf</code>to<code>.elf</code>forARMCC Compiler</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014193112136.png" alt="image-20241014193112136"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014193327211.png" alt="image-20241014193327211"></p>
+<ol start="2">
+<li>外部编译器支持</li>
+</ol>
+<p>由于EIDE是调用Keil的ARMCC编译器进行编译, 所以我们还需要在设置里配置ARMCC路径</p>
+<p>默认填写AC5即可, 如有需求可以一并填上AC6路径</p>
+<blockquote>
+<ul>
+<li>设置搜索ARMCC: 填入Keil安装目录里的ARMCC</li>
+</ul>
+</blockquote>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014193825159.png" alt="image-20241014193825159"></p>
+<h1 id="EIDE食用方法"><a href="#EIDE食用方法" class="headerlink" title="EIDE食用方法"></a>EIDE食用方法</h1><p>EIDE目前支持两种创建工程方式, 即使使用了原生EIDE项目也支持将项目导出为Keil工程, 所以不必太担心</p>
+<ul>
+<li>创建原生EIDE工程</li>
+<li>导入Keil等工程生成EIDE工程</li>
+</ul>
+<h2 id="导入Keil工程"><a href="#导入Keil工程" class="headerlink" title="导入Keil工程"></a>导入Keil工程</h2><ol>
+<li><p>选择导入项目, 可以看到EIDE支持导入<code>MDK</code> <code>IAR</code> <code>Eclipse</code>工程. 导入Keil工程选择第一个MDK即可.</p>
+<p>导入后右下角会显示是否与Keil项目共存, 这里推荐选择否, 然后在原工程目录下新建EIDE文件夹用于存放EIDE配置文件</p>
+</li>
+</ol>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014195340397.png" alt="image-20241014195340397"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014201021812.png" alt="image-20241014201021812"></p>
+<ol start="2">
+<li><p>转到工作区, 如下图所示</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014202542243.png" alt="image-20241014202542243"></p>
+</li>
+</ol>
+<blockquote>
+<ol>
+<li><p>在芯片支持包里添加对应芯片的.pack包</p>
+</li>
+<li><p>烧录配置里选择一开始下载的OpenOCD, 接着选择对应芯片与烧录器</p>
+</li>
+<li><p>第三步使用Hel库的可以跳过</p>
+<p>如果使用标准库需要在下面的预处理宏定义加入对应芯片的代号</p>
+<p>例如STM32F103属于中容量产品, 则填入STM32F10X_MD</p>
+<p>用于stm32f10x.h里的条件编译的选择</p>
+</li>
+</ol>
+</blockquote>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014202722158.png" alt="image-20241014202722158"></p>
+<p>其中构建配置里的构建器选项便是Keil里魔术棒的设置</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014203727452.png" alt="image-20241014203727452"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014203741466.png" alt="image-20241014203741466"></p>
+<ol start="3">
+<li><p>按下F7编译, 没有报错便大功告成了</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image-20241014203321037.png" alt="image-20241014203321037"></p>
+</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://cialloo.cn">Rvosy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://cialloo.cn/posts/29dfa951/">https://cialloo.cn/posts/29dfa951/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://cialloo.cn" target="_blank">Rvosy的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a><a class="post-meta__tags" href="/tags/VSCode/">VSCode</a><a class="post-meta__tags" href="/tags/EIDE/">EIDE</a></div><div class="post-share"><div class="social-share" data-image="https://oss.cialloo.cn/img/5.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://lib.baomitu.com/social-share.js/1.0.16/css/share.min.css" media="print" onload="this.media='all'"><script src="https://lib.baomitu.com/social-share.js/1.0.16/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="prev-post pull-left" href="/posts/5b4ac658/" title="Ros学习笔记"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/rosnoetic.png" onerror="onerror=null;src='/img/404.png'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Ros学习笔记</div></div></a><a class="next-post pull-right" href="/posts/a979f295/" title="C++算法竞赛常用STL库用法"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/11.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">C++算法竞赛常用STL库用法</div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rvosy</div><div class="author-info-description">In solitude, where we are least alone</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Rvosy"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">插件介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Embedded-IDE"><span class="toc-number">2.1.</span> <span class="toc-text">Embedded IDE</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E7%89%B9%E6%80%A7-%F0%9F%8E%89"><span class="toc-number">2.1.1.</span> <span class="toc-text">功能特性 🎉</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E5%88%97%E8%A1%A8"><span class="toc-number">3.</span> <span class="toc-text">插件列表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BF%85%E5%A4%87%E6%8F%92%E4%BB%B6"><span class="toc-number">3.0.1.</span> <span class="toc-text">必备插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E6%8F%92%E4%BB%B6"><span class="toc-number">3.0.2.</span> <span class="toc-text">推荐插件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#EIDE%E9%85%8D%E7%BD%AE"><span class="toc-number">4.</span> <span class="toc-text">EIDE配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#EIDE%E9%A3%9F%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-number">5.</span> <span class="toc-text">EIDE食用方法</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5Keil%E5%B7%A5%E7%A8%8B"><span class="toc-number">5.1.</span> <span class="toc-text">导入Keil工程</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/e8706fd6/" title="萝莉废萌作品推荐"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image5.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="萝莉废萌作品推荐"/></a><div class="content"><a class="title" href="/posts/e8706fd6/" title="萝莉废萌作品推荐">萝莉废萌作品推荐</a><time datetime="2025-12-23T12:07:00.000Z" title="发表于 2025-12-23 20:07:00">2025-12-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/fd6ce778/" title="2025年电赛C题主要源码"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/diansai.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="2025年电赛C题主要源码"/></a><div class="content"><a class="title" href="/posts/fd6ce778/" title="2025年电赛C题主要源码">2025年电赛C题主要源码</a><time datetime="2025-08-20T16:00:00.000Z" title="发表于 2025-08-21 00:00:00">2025-08-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/arona.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(Debug记录)PCF8591多通道数据篡位问题"/></a><div class="content"><a class="title" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题">(Debug记录)PCF8591多通道数据篡位问题</a><time datetime="2024-12-19T00:07:00.000Z" title="发表于 2024-12-19 08:07:00">2024-12-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f35c1f5b/" title="蓝桥杯单片机"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/10.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="蓝桥杯单片机"/></a><div class="content"><a class="title" href="/posts/f35c1f5b/" title="蓝桥杯单片机">蓝桥杯单片机</a><time datetime="2024-12-01T00:07:00.000Z" title="发表于 2024-12-01 08:07:00">2024-12-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/5b4ac658/" title="Ros学习笔记"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/rosnoetic.png" onerror="this.onerror=null;this.src='/img/404.png'" alt="Ros学习笔记"/></a><div class="content"><a class="title" href="/posts/5b4ac658/" title="Ros学习笔记">Ros学习笔记</a><time datetime="2024-10-16T16:00:00.000Z" title="发表于 2024-10-17 00:00:00">2024-10-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Rvosy</div><div class="footer_custom_text">I wish you to become your own sun, no need to rely on who's light.<p> <a target="_blank" href="https://beian.miit.gov.cn/">闽ICP备2024073898号-1</a>&nbsp;<p> <a target="_blank" href="https://hexo.io/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Frame-Hexo-blue.svg" title="博客框架为Hexo"></a>&nbsp; <a target="_blank" href="https://butterfly.js.org/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Theme-Butterfly-6513df.svg" title="主题采用butterfly"></a>&nbsp; <a target="_blank" href="https://vercel.com/ "><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Hosted-Vervel-brightgreen.svg" title="本站采用双线部署，默认线路托管于Vercel"></a>&nbsp; <a target="_blank" href="https://github.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Source-Github-d021d6.svg" title="本站项目由Gtihub托管"></a>&nbsp; <a target="_blank" href="https://icp.gov.moe/?keyword=20249400"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/moeicp.svg" title="本站已加入萌ICP"></a>&nbsp; <a target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Copyright-BY--NC--SA%204.svg" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"></a></p></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.umd.min.js"></script><script src="https://oss.cialloo.cn/js/lazyload.iife.min.js"></script><div class="js-pjax"></div><script src="https://oss.cialloo.cn/js/jquery-3.6.0.min.js"></script><script defer src="/live2d/autoload.js"></script><canvas id="universe"></canvas><script defer src="https://oss.cialloo.cn/js/universe.min.js"></script><script async src="https://oss.cialloo.cn/js/title.min.js"></script><script async src="https://oss.cialloo.cn/js/fps.min.js"></script><script async src="//npm.elemecdn.com/pace-js@1.2.4/pace.min.js"></script><script defer src="https://oss.cialloo.cn/js/cursor.min.js"></script><script defer src="https://oss.cialloo.cn/js/mouse.min.js"></script><script defer type="text/javascript">
+    $(document).ready(function() {
+        $.shuicheMouse({
+            type: 11,
+            color: "rgba(187,67,128,1)"
+        });
+    });
+</script>
+<script src="https://oss.cialloo.cn/js/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
