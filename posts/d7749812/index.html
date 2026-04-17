@@ -1,0 +1,452 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>使用 STM32CubeMX 部署 AI 模型 | Rvosy的小破站</title><meta name="author" content="Rvosy"><meta name="copyright" content="Rvosy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="使用 STM32CubeMX 部署 AI 模型一、环境搭建安装 X-CUBE-AI 打开 STM32CubeMX，在初始界面中选择 Help 选项 在弹窗中选择 Manage embedded software packages 选择最新版本的 X-CUBE-AI 进行安装    二、模型验证在正式部署前，我们需要先验证模型能否在 MCU 上正常运行。 新建工程 新建工程并初始化好时钟树 配置 U">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 STM32CubeMX 部署 AI 模型">
+<meta property="og:url" content="https://cialloo.cn/posts/d7749812/index.html">
+<meta property="og:site_name" content="Rvosy的小破站">
+<meta property="og:description" content="使用 STM32CubeMX 部署 AI 模型一、环境搭建安装 X-CUBE-AI 打开 STM32CubeMX，在初始界面中选择 Help 选项 在弹窗中选择 Manage embedded software packages 选择最新版本的 X-CUBE-AI 进行安装    二、模型验证在正式部署前，我们需要先验证模型能否在 MCU 上正常运行。 新建工程 新建工程并初始化好时钟树 配置 U">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oss.cialloo.cn/img/123.webp">
+<meta property="article:published_time" content="2026-01-31T08:07:00.000Z">
+<meta property="article:modified_time" content="2026-01-31T08:07:00.000Z">
+<meta property="article:author" content="Rvosy">
+<meta property="article:tag" content="STM32">
+<meta property="article:tag" content="AI模型">
+<meta property="article:tag" content="CubeMX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oss.cialloo.cn/img/123.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://cialloo.cn/posts/d7749812/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+          
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/egjs-infinitegrid/4.12.0/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '使用 STM32CubeMX 部署 AI 模型',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-31 16:07:00'
+}</script><link rel="stylesheet" href="https://oss.cialloo.cn/css/universe.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="/css/font.css"><script>
+  if (localStorage.getItem('modelId') === null) {
+    localStorage.setItem('modelId', '0');
+  }
+  if (localStorage.getItem('modelTexturesId') === null) {
+    localStorage.setItem('modelTexturesId', '0');
+  }
+</script>
+<style>
+  body {
+    font-family: "LXGWWenKaiLite-Medium",-apple-system, Microsoft Yahei, sans-serif;
+    font-size: 16px;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://oss.cialloo.cn/img/84136296_p0.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png" alt="Logo"><span class="site-name">Rvosy的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">使用 STM32CubeMX 部署 AI 模型</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">使用 STM32CubeMX 部署 AI 模型</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-31T08:07:00.000Z" title="发表于 2026-01-31 16:07:00">2026-01-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-31T08:07:00.000Z" title="更新于 2026-01-31 16:07:00">2026-01-31</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E6%A8%A1%E5%9E%8B/">AI 模型</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="使用-STM32CubeMX-部署-AI-模型"><a href="#使用-STM32CubeMX-部署-AI-模型" class="headerlink" title="使用 STM32CubeMX 部署 AI 模型"></a>使用 STM32CubeMX 部署 AI 模型</h1><h2 id="一、环境搭建"><a href="#一、环境搭建" class="headerlink" title="一、环境搭建"></a>一、环境搭建</h2><h3 id="安装-X-CUBE-AI"><a href="#安装-X-CUBE-AI" class="headerlink" title="安装 X-CUBE-AI"></a>安装 X-CUBE-AI</h3><ol>
+<li>打开 STM32CubeMX，在初始界面中选择 <strong>Help</strong> 选项</li>
+<li>在弹窗中选择 <strong>Manage embedded software packages</strong></li>
+<li>选择最新版本的 X-CUBE-AI 进行安装</li>
+</ol>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny1.webp" alt="安装界面1"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny2.webp" alt="安装界面2"></p>
+<h2 id="二、模型验证"><a href="#二、模型验证" class="headerlink" title="二、模型验证"></a>二、模型验证</h2><p>在正式部署前，我们需要先验证模型能否在 MCU 上正常运行。</p>
+<h3 id="新建工程"><a href="#新建工程" class="headerlink" title="新建工程"></a>新建工程</h3><ol>
+<li>新建工程并初始化好时钟树</li>
+<li>配置 USART 外设（用于输出调试信息）</li>
+</ol>
+<h3 id="启用-X-CUBE-AI"><a href="#启用-X-CUBE-AI" class="headerlink" title="启用 X-CUBE-AI"></a>启用 X-CUBE-AI</h3><p>在 CubeMX 中找到 X-CUBE-AI 选项并启用：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny3.webp" alt="启用X-CUBE-AI"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny4.webp" alt="配置界面"></p>
+<p>选择 X-CUBE-AI 折叠选项中的 <strong>Core</strong> 即可激活 AI 功能。下方有三种工作模式可选：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>用途</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SystemPerformance</strong></td>
+<td>评估推理时间、CPU 负载等性能指标</td>
+<td>部署前的性能分析</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>验证模型转换后的准确性</td>
+<td>检查量化&#x2F;压缩导致的精度损失</td>
+</tr>
+<tr>
+<td><strong>Application Template</strong></td>
+<td>提供业务代码框架</td>
+<td>实际落地项目开发</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>推荐流程</strong>：先使用 SystemPerformance 模式快速验证模型能否运行，再切换到 Application Template 编写业务代码。</p>
+</blockquote>
+<h3 id="配置-SystemPerformance-模式"><a href="#配置-SystemPerformance-模式" class="headerlink" title="配置 SystemPerformance 模式"></a>配置 SystemPerformance 模式</h3><p>选择 SystemPerformance 模式，并指定输出串口：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny5.webp" alt="选择串口"></p>
+<h3 id="添加-AI-模型"><a href="#添加-AI-模型" class="headerlink" title="添加 AI 模型"></a>添加 AI 模型</h3><p>点击 <strong>+</strong> 号新建模型：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny6.webp" alt="添加模型"></p>
+<p><strong>配置参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>network</strong></td>
+<td>AI 模型名称，支持自定义</td>
+</tr>
+<tr>
+<td><strong>Model type</strong></td>
+<td>模型格式：Keras(.h5)、TFLite(.tflite)、ONNX(.onnx)</td>
+</tr>
+<tr>
+<td><strong>Compression</strong></td>
+<td>压缩等级，用于减少模型体积</td>
+</tr>
+<tr>
+<td><strong>Optimization</strong></td>
+<td>优化等级，平衡空间和推理时间</td>
+</tr>
+<tr>
+<td><strong>Validation inputs</strong></td>
+<td>验证数据源，可选随机数据或自定义数据</td>
+</tr>
+</tbody></table>
+<p>点击 <strong>Analyze</strong> 验证模型能否在 MCU 上运行：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny7.webp" alt="分析结果"></p>
+<blockquote>
+<p>本次使用的模型格式为 <code>.tflite</code>，需选择 TFLite 类型，然后点击 Browse 选择模型文件。</p>
+</blockquote>
+<h3 id="生成代码并验证"><a href="#生成代码并验证" class="headerlink" title="生成代码并验证"></a>生成代码并验证</h3><ol>
+<li>生成代码</li>
+<li>编译并下载到单片机</li>
+<li>打开串口查看输出</li>
+</ol>
+<p><strong>预期输出：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Running PerfTest on &quot;sine_model&quot; with random inputs (16 iterations)...</span><br><span class="line">................</span><br><span class="line"></span><br><span class="line">Results for &quot;sine_model&quot;, 16 inferences @480MHz/240MHz (complexity: 325 MACC)</span><br><span class="line"> duration     : 0.012 ms (average)</span><br><span class="line"> CPU cycles   : 5833 (average)</span><br><span class="line"> CPU Workload : 0% (duty cycle = 1s)</span><br><span class="line"> cycles/MACC  : 17.94 (average for all layers)</span><br><span class="line"> used stack   : DISABLED</span><br><span class="line"> used heap    : DISABLED or NOT YET SUPPORTED</span><br><span class="line"> observer res : -1 bytes used from the heap (5 c-nodes)</span><br><span class="line"></span><br><span class="line"> Inference time by c-node</span><br><span class="line">  kernel  : 0.008ms (time passed in the c-kernel fcts)</span><br><span class="line">  user    : 0.001ms (time passed in the user cb)</span><br><span class="line"></span><br><span class="line"> c_id  type                id       time (ms)</span><br><span class="line"> ---------------------------------------------------</span><br><span class="line"> 0     NL                  0          0.000  10.29 %</span><br><span class="line"> 1     DENSE               1          0.002  27.84 %</span><br><span class="line"> 2     DENSE               2          0.002  32.58 %</span><br><span class="line"> 3     DENSE               3          0.001  21.04 %</span><br><span class="line"> 4     NL                  4          0.000   8.26 %</span><br><span class="line"> -------------------------------------------------</span><br><span class="line">                                      0.008 ms</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="三、模型部署"><a href="#三、模型部署" class="headerlink" title="三、模型部署"></a>三、模型部署</h2><p>验证模型可用后，开始编写业务代码。</p>
+<h3 id="切换到-Application-Template-模式"><a href="#切换到-Application-Template-模式" class="headerlink" title="切换到 Application Template 模式"></a>切换到 Application Template 模式</h3><p>重新生成代码后，查看生成的文件结构：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny9.webp" alt="生成文件"></p>
+<p><strong>文件说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+<th>是否需要修改</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>network.c/.h</code></td>
+<td>模型结构、接口函数</td>
+<td>❌ 不修改</td>
+</tr>
+<tr>
+<td><code>network_data.c/.h</code></td>
+<td>权重(Weights)和偏置(Bias)参数</td>
+<td>❌ 不修改</td>
+</tr>
+<tr>
+<td><code>network_data_params.c/.h</code></td>
+<td>AI 模型的数据仓库</td>
+<td>❌ 不修改</td>
+</tr>
+<tr>
+<td><code>app_x-cube-ai.c</code></td>
+<td>业务逻辑代码</td>
+<td>✅ <strong>需要修改</strong></td>
+</tr>
+</tbody></table>
+<h3 id="编写业务代码"><a href="#编写业务代码" class="headerlink" title="编写业务代码"></a>编写业务代码</h3><p>打开 <code>app_x-cube-ai.c</code>，按照下一章的教程进行修改。</p>
+<h2 id="四、代码编写教程"><a href="#四、代码编写教程" class="headerlink" title="四、代码编写教程"></a>四、代码编写教程</h2><h3 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h3><p>X-CUBE-AI 生成的模板代码需要完成 3 个关键函数：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>作用</th>
+<th>你需要做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>acquire_and_process_data()</code></td>
+<td>准备输入数据</td>
+<td>把你的数据写入输入缓冲区</td>
+</tr>
+<tr>
+<td><code>ai_run()</code></td>
+<td>执行推理</td>
+<td>无需修改（自动生成）</td>
+</tr>
+<tr>
+<td><code>post_process()</code></td>
+<td>处理输出</td>
+<td>从输出缓冲区读取结果</td>
+</tr>
+</tbody></table>
+<h3 id="了解模型"><a href="#了解模型" class="headerlink" title="了解模型"></a>了解模型</h3><p><strong>需要知道：</strong></p>
+<ol>
+<li><strong>输入形状</strong>：模型需要什么输入？（如：1个float、28×28图像、等）</li>
+<li><strong>输出形状</strong>：模型输出什么？（如：1个float、10个类别概率、等）</li>
+<li><strong>数据类型</strong>：float32 还是 int8 量化？</li>
+</ol>
+<p><strong>对于 sine_model：</strong></p>
+<ul>
+<li>输入：1 个 float (x 值)</li>
+<li>输出：1 个 float (sin(x) 预测值)</li>
+</ul>
+<h3 id="配置串口重定向（使-printf-输出到串口）"><a href="#配置串口重定向（使-printf-输出到串口）" class="headerlink" title="配置串口重定向（使 printf 输出到串口）"></a>配置串口重定向（使 printf 输出到串口）</h3><p>在 <code>usart.c</code> 或 <code>main.c</code> 中添加以下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* USER CODE BEGIN 0 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 重定向 printf 到 USART</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">fputc</span><span class="params">(<span class="type">int</span> ch, FILE *f)</span></span><br><span class="line">&#123;</span><br><span class="line">  HAL_UART_Transmit(&amp;huart1, (<span class="type">uint8_t</span> *)&amp;ch, <span class="number">1</span>, HAL_MAX_DELAY);</span><br><span class="line">  <span class="keyword">return</span> ch;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* USER CODE END 0 */</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>⚠️ <strong>重要</strong>：需要在项目设置中勾选 <strong>Use MicroLIB</strong>，否则 printf 无法正常工作。</p>
+</blockquote>
+<h3 id="添加必要的头文件和变量"><a href="#添加必要的头文件和变量" class="headerlink" title="添加必要的头文件和变量"></a>添加必要的头文件和变量</h3><p>在 <code>/* USER CODE BEGIN includes */</code> 区域添加：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* USER CODE BEGIN includes */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;math.h&gt;</span>           <span class="comment">// 如果需要数学函数</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PI 3.14159265358979323846f</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义数据指针（方便操作）</span></span><br><span class="line"><span class="type">static</span> <span class="type">float</span> *input_data;   </span><br><span class="line"><span class="type">static</span> <span class="type">float</span> *output_data;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 你的测试变量</span></span><br><span class="line"><span class="type">static</span> <span class="type">float</span> test_x = <span class="number">0.0f</span>;</span><br><span class="line"><span class="comment">/* USER CODE END includes */</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="修改输入函数-acquire-and-process-data"><a href="#修改输入函数-acquire-and-process-data" class="headerlink" title="修改输入函数 acquire_and_process_data()"></a>修改输入函数 <code>acquire_and_process_data()</code></h3><p><code>data[0]</code> 是指向输入缓冲区的指针，我们需要把数据填进去</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">acquire_and_process_data</span><span class="params">(ai_i8* data[])</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// 1. 类型转换：把 ai_i8* 转成你需要的类型</span></span><br><span class="line">  input_data = (<span class="type">float</span>*)data[<span class="number">0</span>];</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 2. 填入数据</span></span><br><span class="line">  input_data[<span class="number">0</span>] = test_x;  <span class="comment">// 对于 sine_model 只有1个输入</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;  <span class="comment">// 返回 0 表示成功</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="修改输出函数-post-process"><a href="#修改输出函数-post-process" class="headerlink" title="修改输出函数 post_process()"></a>修改输出函数 <code>post_process()</code></h3><p><code>data[0]</code> 是指向输出缓冲区的指针，推理结果在这里</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">post_process</span><span class="params">(ai_i8* data[])</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// 1. 类型转换</span></span><br><span class="line">  output_data = (<span class="type">float</span>*)data[<span class="number">0</span>];</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 2. 读取结果</span></span><br><span class="line">  <span class="type">float</span> predicted_sin = output_data[<span class="number">0</span>];</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 3. 使用结果（打印、控制、存储等）</span></span><br><span class="line">  <span class="type">float</span> actual_sin = sinf(test_x);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;x = %.4f, predicted = %.4f, actual = %.4f, error = %.6f\r\n&quot;</span>,</span><br><span class="line">         test_x, predicted_sin, actual_sin, predicted_sin - actual_sin);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 4. 决定是否继续循环</span></span><br><span class="line">  test_x += <span class="number">0.1f</span>;</span><br><span class="line">  <span class="keyword">if</span> (test_x &gt; <span class="number">2.0f</span> * PI) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;  <span class="comment">// 返回非0停止循环</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;  <span class="comment">// 返回0继续循环</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="修改初始化和处理函数"><a href="#修改初始化和处理函数" class="headerlink" title="修改初始化和处理函数"></a>修改初始化和处理函数</h3><p>可以优化 <code>MX_X_CUBE_AI_Init()</code> 和 <code>MX_X_CUBE_AI_Process()</code> 的输出信息：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">MX_X_CUBE_AI_Init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* USER CODE BEGIN 5 */</span></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;\r\n=== Sine Model Initialization ===\r\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (ai_boostrap(data_activations0) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;AI bootstrap failed!\r\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;AI Network initialized successfully!\r\n&quot;</span>);</span><br><span class="line">    <span class="comment">/* USER CODE END 5 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">MX_X_CUBE_AI_Process</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* USER CODE BEGIN 6 */</span></span><br><span class="line">  <span class="type">int</span> res = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (network) &#123;</span><br><span class="line">    test_x = <span class="number">0.0f</span>;  <span class="comment">// 重置测试值</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;=== Starting Inference ===\r\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">      res = acquire_and_process_data(data_ins);</span><br><span class="line">      <span class="keyword">if</span> (res == <span class="number">0</span>)</span><br><span class="line">        res = ai_run();</span><br><span class="line">      <span class="keyword">if</span> (res == <span class="number">0</span>)</span><br><span class="line">        res = post_process(data_outs);</span><br><span class="line">    &#125; <span class="keyword">while</span> (res == <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;=== Inference Complete ===\r\n&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Error: Network not initialized!\r\n&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">    <span class="comment">/* USER CODE END 6 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────┐</span><br><span class="line">│  你的原始数据    │  (传感器、图像、用户输入等)</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│ acquire_and_    │  填充 data_ins 缓冲区</span><br><span class="line">│ process_data()  │  (类型转换 + 预处理)</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│    ai_run()     │  神经网络推理 (自动)</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│  post_process() │  从 data_outs 读取结果</span><br><span class="line">│                 │  (解析 + 后处理)</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│    使用结果      │  (显示、控制、通信等)</span><br><span class="line">└─────────────────┘</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="完整示例代码"><a href="#完整示例代码" class="headerlink" title="完整示例代码"></a>完整示例代码</h3><p>以下是 sine_model 的完整 <code>app_x-cube-ai.c</code> 修改部分：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* USER CODE BEGIN includes */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;math.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PI 3.14159265358979323846f</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">float</span> *input_data;</span><br><span class="line"><span class="type">static</span> <span class="type">float</span> *output_data;</span><br><span class="line"><span class="type">static</span> <span class="type">float</span> test_x = <span class="number">0.0f</span>;</span><br><span class="line"><span class="comment">/* USER CODE END includes */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* USER CODE BEGIN 2 */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">acquire_and_process_data</span><span class="params">(ai_i8* data[])</span></span><br><span class="line">&#123;</span><br><span class="line">  input_data = (<span class="type">float</span>*)data[<span class="number">0</span>];</span><br><span class="line">  input_data[<span class="number">0</span>] = test_x;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">post_process</span><span class="params">(ai_i8* data[])</span></span><br><span class="line">&#123;</span><br><span class="line">  output_data = (<span class="type">float</span>*)data[<span class="number">0</span>];</span><br><span class="line">  <span class="type">float</span> predicted_sin = output_data[<span class="number">0</span>];</span><br><span class="line">  <span class="type">float</span> actual_sin = sinf(test_x);</span><br><span class="line">  </span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;x = %.4f, predicted = %.4f, actual = %.4f, error = %.6f\r\n&quot;</span>,</span><br><span class="line">         test_x, predicted_sin, actual_sin, predicted_sin - actual_sin);</span><br><span class="line">  </span><br><span class="line">  test_x += <span class="number">0.1f</span>;</span><br><span class="line">  <span class="keyword">if</span> (test_x &gt; <span class="number">2.0f</span> * PI) &#123;</span><br><span class="line">    test_x = <span class="number">0.0f</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* USER CODE END 2 */</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="五、运行结果"><a href="#五、运行结果" class="headerlink" title="五、运行结果"></a>五、运行结果</h2><h3 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h3><p>编译下载后，串口将输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">=== Sine Model Initialization ===</span><br><span class="line">AI Network initialized successfully!</span><br><span class="line"></span><br><span class="line">=== Starting Inference ===</span><br><span class="line">x = 0.0000, predicted = 0.0012, actual = 0.0000, error = 0.001200</span><br><span class="line">x = 0.1000, predicted = 0.0998, actual = 0.0998, error = 0.000050</span><br><span class="line">x = 0.2000, predicted = 0.1987, actual = 0.1987, error = 0.000030</span><br><span class="line">...</span><br><span class="line">x = 6.2000, predicted = -0.0831, actual = -0.0831, error = 0.000012</span><br><span class="line">=== Inference Complete ===</span><br></pre></td></tr></table></figure>
+<h3 id="结果分析"><a href="#结果分析" class="headerlink" title="结果分析"></a>结果分析</h3><p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/tiny10.webp"> </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://cialloo.cn">Rvosy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://cialloo.cn/posts/d7749812/">https://cialloo.cn/posts/d7749812/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://cialloo.cn" target="_blank">Rvosy的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a><a class="post-meta__tags" href="/tags/AI%E6%A8%A1%E5%9E%8B/">AI模型</a><a class="post-meta__tags" href="/tags/CubeMX/">CubeMX</a></div><div class="post-share"><div class="social-share" data-image="https://oss.cialloo.cn/img/123.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://lib.baomitu.com/social-share.js/1.0.16/css/share.min.css" media="print" onload="this.media='all'"><script src="https://lib.baomitu.com/social-share.js/1.0.16/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="prev-post pull-left" href="/posts/b78655a4/" title="(Debug记录)编译器的-O3优化所导致Bug"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image16.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">(Debug记录)编译器的-O3优化所导致Bug</div></div></a><a class="next-post pull-right" href="/posts/fd6ce778/" title="2025年电赛C题主要源码"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/diansai.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">2025年电赛C题主要源码</div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a href="/posts/29dfa951/" title="使用VSCode开发STM32(EIDE插件)"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/5.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-14</div><div class="title">使用VSCode开发STM32(EIDE插件)</div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rvosy</div><div class="author-info-description">いつも君の隣に、幸せな魔法がありますように</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Rvosy"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-STM32CubeMX-%E9%83%A8%E7%BD%B2-AI-%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">使用 STM32CubeMX 部署 AI 模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.1.</span> <span class="toc-text">一、环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-X-CUBE-AI"><span class="toc-number">1.1.1.</span> <span class="toc-text">安装 X-CUBE-AI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81"><span class="toc-number">1.2.</span> <span class="toc-text">二、模型验证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B0%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.1.</span> <span class="toc-text">新建工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E7%94%A8-X-CUBE-AI"><span class="toc-number">1.2.2.</span> <span class="toc-text">启用 X-CUBE-AI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-SystemPerformance-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">配置 SystemPerformance 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0-AI-%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">添加 AI 模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E4%BB%A3%E7%A0%81%E5%B9%B6%E9%AA%8C%E8%AF%81"><span class="toc-number">1.2.5.</span> <span class="toc-text">生成代码并验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2"><span class="toc-number">1.3.</span> <span class="toc-text">三、模型部署</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%87%E6%8D%A2%E5%88%B0-Application-Template-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">切换到 Application Template 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E4%B8%9A%E5%8A%A1%E4%BB%A3%E7%A0%81"><span class="toc-number">1.3.2.</span> <span class="toc-text">编写业务代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BB%A3%E7%A0%81%E7%BC%96%E5%86%99%E6%95%99%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">四、代码编写教程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%80%9D%E8%B7%AF"><span class="toc-number">1.4.1.</span> <span class="toc-text">整体思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%86%E8%A7%A3%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.4.2.</span> <span class="toc-text">了解模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%B2%E5%8F%A3%E9%87%8D%E5%AE%9A%E5%90%91%EF%BC%88%E4%BD%BF-printf-%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%B2%E5%8F%A3%EF%BC%89"><span class="toc-number">1.4.3.</span> <span class="toc-text">配置串口重定向（使 printf 输出到串口）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E5%BF%85%E8%A6%81%E7%9A%84%E5%A4%B4%E6%96%87%E4%BB%B6%E5%92%8C%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.4.</span> <span class="toc-text">添加必要的头文件和变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E8%BE%93%E5%85%A5%E5%87%BD%E6%95%B0-acquire-and-process-data"><span class="toc-number">1.4.5.</span> <span class="toc-text">修改输入函数 acquire_and_process_data()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E8%BE%93%E5%87%BA%E5%87%BD%E6%95%B0-post-process"><span class="toc-number">1.4.6.</span> <span class="toc-text">修改输出函数 post_process()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E5%88%9D%E5%A7%8B%E5%8C%96%E5%92%8C%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.7.</span> <span class="toc-text">修改初始化和处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.4.8.</span> <span class="toc-text">数据流程图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.9.</span> <span class="toc-text">完整示例代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">1.5.</span> <span class="toc-text">五、运行结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%93%E5%87%BA"><span class="toc-number">1.5.1.</span> <span class="toc-text">输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90"><span class="toc-number">1.5.2.</span> <span class="toc-text">结果分析</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/b78655a4/" title="(Debug记录)编译器的-O3优化所导致Bug"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image16.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(Debug记录)编译器的-O3优化所导致Bug"/></a><div class="content"><a class="title" href="/posts/b78655a4/" title="(Debug记录)编译器的-O3优化所导致Bug">(Debug记录)编译器的-O3优化所导致Bug</a><time datetime="2026-02-05T20:07:31.000Z" title="发表于 2026-02-06 04:07:31">2026-02-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/d7749812/" title="使用 STM32CubeMX 部署 AI 模型"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/123.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="使用 STM32CubeMX 部署 AI 模型"/></a><div class="content"><a class="title" href="/posts/d7749812/" title="使用 STM32CubeMX 部署 AI 模型">使用 STM32CubeMX 部署 AI 模型</a><time datetime="2026-01-31T08:07:00.000Z" title="发表于 2026-01-31 16:07:00">2026-01-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/fd6ce778/" title="2025年电赛C题主要源码"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/diansai.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="2025年电赛C题主要源码"/></a><div class="content"><a class="title" href="/posts/fd6ce778/" title="2025年电赛C题主要源码">2025年电赛C题主要源码</a><time datetime="2025-08-20T16:00:00.000Z" title="发表于 2025-08-21 00:00:00">2025-08-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/arona.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(Debug记录)PCF8591多通道数据篡位问题"/></a><div class="content"><a class="title" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题">(Debug记录)PCF8591多通道数据篡位问题</a><time datetime="2024-12-19T00:07:00.000Z" title="发表于 2024-12-19 08:07:00">2024-12-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/f35c1f5b/" title="蓝桥杯单片机"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/10.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="蓝桥杯单片机"/></a><div class="content"><a class="title" href="/posts/f35c1f5b/" title="蓝桥杯单片机">蓝桥杯单片机</a><time datetime="2024-12-01T00:07:00.000Z" title="发表于 2024-12-01 08:07:00">2024-12-01</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2026 By Rvosy</div><div class="footer_custom_text">I wish you to become your own sun, no need to rely on who's light.<p>
+<a target="_blank" href="https://beian.miit.gov.cn/">闽ICP备2024073898号-1</a>&nbsp;<p>
+<a target="_blank" href="https://hexo.io/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Frame-Hexo-blue.svg" title="博客框架为Hexo"></a>&nbsp;
+<a target="_blank" href="https://butterfly.js.org/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Theme-Butterfly-6513df.svg" title="主题采用butterfly"></a>&nbsp;
+<a target="_blank" href="https://vercel.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Hosted-Vervel-brightgreen.svg" title="本站采用双线部署，默认线路托管于Vercel"></a>&nbsp;
+<a target="_blank" href="https://github.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Source-Github-d021d6.svg" title="本站项目由Gtihub托管"></a>&nbsp;
+<a target="_blank" href="https://icp.gov.moe/?keyword=20249400"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/moeicp.svg" title="本站已加入萌ICP"></a>&nbsp;
+<a target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Copyright-BY--NC--SA%204.svg" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"></a></p>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.umd.min.js"></script><script src="https://oss.cialloo.cn/js/lazyload.iife.min.js"></script><div class="js-pjax"></div><span id="fps"></span><canvas id="universe"></canvas><script src="https://oss.cialloo.cn/js/jquery-3.6.0.min.js"></script><script defer src="/live2d/autoload.js"></script><script defer src="https://oss.cialloo.cn/js/universe.min.js"></script><script async src="https://oss.cialloo.cn/js/title.min.js"></script><script async src="https://oss.cialloo.cn/js/fps.min.js"></script><script async src="//npm.elemecdn.com/pace-js@1.2.4/pace.min.js"></script><script defer src="/js/cursor.js"></script><script defer src="/js/mouse.min.js"></script><script defer src="/js/custom-effects.js"></script><script src="https://oss.cialloo.cn/js/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
