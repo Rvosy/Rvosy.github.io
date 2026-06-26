@@ -1,0 +1,300 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现 | Rvosy的小破站</title><meta name="author" content="Rvosy"><meta name="copyright" content="Rvosy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="前言2025 年电赛 C 题的难点不在于识别图形，而在于如何在单目条件下把识别结果稳定地换算成真实尺寸。纯目标检测很容易得到类别和像素框，但题目要的是距离和边长。这套方案的思路是先用 A4 参考物建立尺度，再用几何分析和 YOLO 做目标筛选与测量。 下面直接讲方案里真正有用的部分。 整体方案系统围绕一张带黑边的 A4 参考板工作，完整链路如下：  摄像头采集固定分辨率图像。 在预设 ROI 内寻">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现">
+<meta property="og:url" content="https://cialloo.cn/posts/fd6ce778/index.html">
+<meta property="og:site_name" content="Rvosy的小破站">
+<meta property="og:description" content="前言2025 年电赛 C 题的难点不在于识别图形，而在于如何在单目条件下把识别结果稳定地换算成真实尺寸。纯目标检测很容易得到类别和像素框，但题目要的是距离和边长。这套方案的思路是先用 A4 参考物建立尺度，再用几何分析和 YOLO 做目标筛选与测量。 下面直接讲方案里真正有用的部分。 整体方案系统围绕一张带黑边的 A4 参考板工作，完整链路如下：  摄像头采集固定分辨率图像。 在预设 ROI 内寻">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oss.cialloo.cn/img/diansai.webp">
+<meta property="article:published_time" content="2025-08-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-17T16:00:00.000Z">
+<meta property="article:author" content="Rvosy">
+<meta property="article:tag" content="单目视觉">
+<meta property="article:tag" content="OpenCV">
+<meta property="article:tag" content="电赛">
+<meta property="article:tag" content="YOLO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oss.cialloo.cn/img/diansai.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://cialloo.cn/posts/fd6ce778/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+          
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/egjs-infinitegrid/4.12.0/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-04-18 00:00:00'
+}</script><link rel="stylesheet" href="https://oss.cialloo.cn/css/universe.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="/css/font.css"><script>
+  if (localStorage.getItem('modelId') === null) {
+    localStorage.setItem('modelId', '0');
+  }
+  if (localStorage.getItem('modelTexturesId') === null) {
+    localStorage.setItem('modelTexturesId', '0');
+  }
+</script>
+<style>
+  body {
+    font-family: "LXGWWenKaiLite-Medium",-apple-system, Microsoft Yahei, sans-serif;
+    font-size: 16px;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://oss.cialloo.cn/img/84136296_p0.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png" alt="Logo"><span class="site-name">Rvosy的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-20T16:00:00.000Z" title="发表于 2025-08-21 00:00:00">2025-08-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-04-17T16:00:00.000Z" title="更新于 2026-04-18 00:00:00">2026-04-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%94%B5%E8%B5%9B/">电赛</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>2025 年电赛 C 题的难点不在于识别图形，而在于如何在单目条件下把识别结果稳定地换算成真实尺寸。纯目标检测很容易得到类别和像素框，但题目要的是距离和边长。这套方案的思路是先用 A4 参考物建立尺度，再用几何分析和 YOLO 做目标筛选与测量。</p>
+<p>下面直接讲方案里真正有用的部分。</p>
+<h2 id="整体方案"><a href="#整体方案" class="headerlink" title="整体方案"></a>整体方案</h2><p>系统围绕一张带黑边的 A4 参考板工作，完整链路如下：</p>
+<ol>
+<li>摄像头采集固定分辨率图像。</li>
+<li>在预设 ROI 内寻找 A4 黑边内轮廓。</li>
+<li>对 A4 做透视校正，得到统一尺度的俯视图。</li>
+<li>基础题直接在俯视图中做几何测量。</li>
+<li>发挥题和发挥题二先在俯视图中运行 YOLO，再结合几何分析计算真实边长。</li>
+</ol>
+<p>YOLO 只负责定位目标，尺度换算还是走 A4 参考物，这样可以绕开直接用检测框回推尺寸时精度不稳的问题。</p>
+<h2 id="基础题：先把-A4-参考系建立起来"><a href="#基础题：先把-A4-参考系建立起来" class="headerlink" title="基础题：先把 A4 参考系建立起来"></a>基础题：先把 A4 参考系建立起来</h2><h3 id="识别黑边内轮廓，不用外轮廓"><a href="#识别黑边内轮廓，不用外轮廓" class="headerlink" title="识别黑边内轮廓，不用外轮廓"></a>识别黑边内轮廓，不用外轮廓</h3><p>题目场景里有一条 5 mm 黑色基准线。参考板贴近地面时，外轮廓容易和背景基准线混在一起，所以代码直接用黑边内轮廓的实际尺寸：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">A4_WIDTH_MM = <span class="number">170</span></span><br><span class="line">A4_HEIGHT_MM = <span class="number">257</span></span><br></pre></td></tr></table></figure>
+
+<p>注意这里不是用标准 A4 的 210 mm × 297 mm，而是黑边内框对应的可识别区域，后续距离计算都依赖这个数值。</p>
+<h3 id="固定-ROI-轮廓筛选"><a href="#固定-ROI-轮廓筛选" class="headerlink" title="固定 ROI + 轮廓筛选"></a>固定 ROI + 轮廓筛选</h3><p>项目没有做全画面搜索，而是在主画面里裁出一个固定 ROI，再在其中做灰度化、高斯滤波和二值化轮廓提取。随后保留面积足够大的候选轮廓，并取排序后的第二大轮廓作为黑边内框目标。这个策略建立在比赛场景相对固定的前提上，优点是快，缺点是对摆位比较敏感。</p>
+<p>核心逻辑可以概括成下面这段：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">roi_x, roi_y, roi_w, roi_h = (<span class="number">526</span>, <span class="number">222</span>, <span class="number">227</span>, <span class="number">276</span>)</span><br><span class="line">gray = cv2.cvtColor(roi_image, cv2.COLOR_BGR2GRAY)</span><br><span class="line">blur = cv2.GaussianBlur(gray, (<span class="number">5</span>, <span class="number">5</span>), <span class="number">0</span>)</span><br><span class="line">edged = cv2.threshold(blur, <span class="number">0</span>, <span class="number">255</span>, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[<span class="number">1</span>]</span><br><span class="line">contours, _ = cv2.findContours(edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)</span><br></pre></td></tr></table></figure>
+
+<p>后续再通过面积阈值、四边形逼近和长宽比约束，把不合理轮廓筛掉。</p>
+<h3 id="透视变换：按高推宽"><a href="#透视变换：按高推宽" class="headerlink" title="透视变换：按高推宽"></a>透视变换：按高推宽</h3><p>找到 A4 之后做透视变换。代码没有直接用轮廓的上下边长度定目标宽度，而是先算左右边的平均高度，再按 A4 已知比例反推矫正后的宽度。A4 水平旋转时图像里”宽”的变化比”高”更明显，所以用高来反推更稳定：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">max_height = <span class="built_in">int</span>((height_left + height_right) / <span class="number">2</span>)</span><br><span class="line">max_width = <span class="built_in">int</span>(max_height * (A4_WIDTH_MM / A4_HEIGHT_MM))</span><br></pre></td></tr></table></figure>
+
+<p>这样得到的俯视图尺度稳定一些，后面的距离和边长估计误差也会小一点。</p>
+<h3 id="距离和尺寸如何换算"><a href="#距离和尺寸如何换算" class="headerlink" title="距离和尺寸如何换算"></a>距离和尺寸如何换算</h3><p>距离估计采用标准针孔模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">distance = (real_height_mm * focal_length_px) / image_height_px</span><br></pre></td></tr></table></figure>
+
+<p>程序分别用 A4 的宽和高估出两个距离，再取平均值，降低单方向误差。基础题模式下，<code>DataCollectionThread</code> 会在限定次数和超时内采集最多 8 张有效数据，再输出平均距离和平均边长。</p>
+<h2 id="发挥题：YOLO-负责找目标，几何分析负责算边长"><a href="#发挥题：YOLO-负责找目标，几何分析负责算边长" class="headerlink" title="发挥题：YOLO 负责找目标，几何分析负责算边长"></a>发挥题：YOLO 负责找目标，几何分析负责算边长</h2><p>发挥题没有直接拿 YOLO 检测框宽高当结果。先在 A4 俯视图里运行 YOLO 定位候选目标，再对每个候选框做轮廓分析，找出最长垂直线段作为真实边长的估计依据。检测框受外接矩形和旋转角度影响，直接换算误差偏大，所以这里绕开了框尺寸。</p>
+<h3 id="最长垂直线段作为边长候选"><a href="#最长垂直线段作为边长候选" class="headerlink" title="最长垂直线段作为边长候选"></a>最长垂直线段作为边长候选</h3><p><code>find_short.py</code> 里的核心函数会先对目标轮廓做 Douglas-Peucker 简化，再遍历相邻边，找出同时与前后边近似垂直的线段。满足约束的线段中，最长的一条被视为最可信的边长候选：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">epsilon = <span class="number">0.01</span> * cv2.arcLength(main_contour, <span class="literal">True</span>)</span><br><span class="line">approx = cv2.approxPolyDP(main_contour, epsilon, <span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">is_perpendicular = (</span><br><span class="line">    <span class="built_in">abs</span>(angle_prev - <span class="number">90</span>) &lt; angle_threshold <span class="keyword">and</span></span><br><span class="line">    <span class="built_in">abs</span>(angle_next - <span class="number">90</span>) &lt; angle_threshold</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>在发挥题里，系统会比较每个目标的最长垂直线段长度，选出“最小正方形”；然后再结合 A4 提供的距离与焦距参数，把像素长度换算成真实边长。当前实现还会对结果做一个很小的经验补偿，以抵消实际拍摄误差。</p>
+<h3 id="为什么要预加载和多帧平均"><a href="#为什么要预加载和多帧平均" class="headerlink" title="为什么要预加载和多帧平均"></a>为什么要预加载和多帧平均</h3><p>如果 YOLO 在进入发挥题时才首次加载，界面会明显卡顿。所以程序在 <code>CameraThread</code> 初始化时就预加载 <code>best.pt</code>，窗口启动后用一张空白图做一次预热推理，把首次延迟转移到后台。</p>
+<p>发挥题不是单帧出结果，而是在超时和最大尝试次数限制内采集 5 张有效数据再取平均。单帧偶发误差基本被抹掉了，等待时间也还在能接受的范围里。</p>
+<h2 id="发挥题二：把“识别全部”改成“只测一个”"><a href="#发挥题二：把“识别全部”改成“只测一个”" class="headerlink" title="发挥题二：把“识别全部”改成“只测一个”"></a>发挥题二：把“识别全部”改成“只测一个”</h2><p>发挥题二的逻辑和发挥题类似，但增加了一个用户交互步骤：先在界面选择数字 0-9，再只保留对应类别的检测结果。程序在 YOLO 输出后，会把 <code>cls_name</code> 转成数字，只分析用户指定的类别。</p>
+<p>这套模式适合比赛里“指定目标测量”的场景。它并没有改变测量方法，改变的只是目标筛选策略，因此整体复用度很高。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://cialloo.cn">Rvosy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://cialloo.cn/posts/fd6ce778/">https://cialloo.cn/posts/fd6ce778/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://cialloo.cn" target="_blank">Rvosy的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%8D%95%E7%9B%AE%E8%A7%86%E8%A7%89/">单目视觉</a><a class="post-meta__tags" href="/tags/OpenCV/">OpenCV</a><a class="post-meta__tags" href="/tags/%E7%94%B5%E8%B5%9B/">电赛</a><a class="post-meta__tags" href="/tags/YOLO/">YOLO</a></div><div class="post-share"><div class="social-share" data-image="https://oss.cialloo.cn/img/diansai.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://lib.baomitu.com/social-share.js/1.0.16/css/share.min.css" media="print" onload="this.media='all'"><script src="https://lib.baomitu.com/social-share.js/1.0.16/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="prev-post pull-left" href="/posts/e8706fd6/" title="(转载)萝莉废萌作品推荐"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image5.jpeg.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">(转载)萝莉废萌作品推荐</div></div></a><a class="next-post pull-right" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/arona.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">(Debug记录)PCF8591多通道数据篡位问题</div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rvosy</div><div class="author-info-description">いつも君の隣に、幸せな魔法がありますように</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Rvosy"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%96%B9%E6%A1%88"><span class="toc-number">2.</span> <span class="toc-text">整体方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E9%A2%98%EF%BC%9A%E5%85%88%E6%8A%8A-A4-%E5%8F%82%E8%80%83%E7%B3%BB%E5%BB%BA%E7%AB%8B%E8%B5%B7%E6%9D%A5"><span class="toc-number">3.</span> <span class="toc-text">基础题：先把 A4 参考系建立起来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E9%BB%91%E8%BE%B9%E5%86%85%E8%BD%AE%E5%BB%93%EF%BC%8C%E4%B8%8D%E7%94%A8%E5%A4%96%E8%BD%AE%E5%BB%93"><span class="toc-number">3.1.</span> <span class="toc-text">识别黑边内轮廓，不用外轮廓</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%BA%E5%AE%9A-ROI-%E8%BD%AE%E5%BB%93%E7%AD%9B%E9%80%89"><span class="toc-number">3.2.</span> <span class="toc-text">固定 ROI + 轮廓筛选</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%8F%E8%A7%86%E5%8F%98%E6%8D%A2%EF%BC%9A%E6%8C%89%E9%AB%98%E6%8E%A8%E5%AE%BD"><span class="toc-number">3.3.</span> <span class="toc-text">透视变换：按高推宽</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%9D%E7%A6%BB%E5%92%8C%E5%B0%BA%E5%AF%B8%E5%A6%82%E4%BD%95%E6%8D%A2%E7%AE%97"><span class="toc-number">3.4.</span> <span class="toc-text">距离和尺寸如何换算</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E6%8C%A5%E9%A2%98%EF%BC%9AYOLO-%E8%B4%9F%E8%B4%A3%E6%89%BE%E7%9B%AE%E6%A0%87%EF%BC%8C%E5%87%A0%E4%BD%95%E5%88%86%E6%9E%90%E8%B4%9F%E8%B4%A3%E7%AE%97%E8%BE%B9%E9%95%BF"><span class="toc-number">4.</span> <span class="toc-text">发挥题：YOLO 负责找目标，几何分析负责算边长</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E9%95%BF%E5%9E%82%E7%9B%B4%E7%BA%BF%E6%AE%B5%E4%BD%9C%E4%B8%BA%E8%BE%B9%E9%95%BF%E5%80%99%E9%80%89"><span class="toc-number">4.1.</span> <span class="toc-text">最长垂直线段作为边长候选</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%A2%84%E5%8A%A0%E8%BD%BD%E5%92%8C%E5%A4%9A%E5%B8%A7%E5%B9%B3%E5%9D%87"><span class="toc-number">4.2.</span> <span class="toc-text">为什么要预加载和多帧平均</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E6%8C%A5%E9%A2%98%E4%BA%8C%EF%BC%9A%E6%8A%8A%E2%80%9C%E8%AF%86%E5%88%AB%E5%85%A8%E9%83%A8%E2%80%9D%E6%94%B9%E6%88%90%E2%80%9C%E5%8F%AA%E6%B5%8B%E4%B8%80%E4%B8%AA%E2%80%9D"><span class="toc-number">5.</span> <span class="toc-text">发挥题二：把“识别全部”改成“只测一个”</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/88C070BCA7F5067229454601F0DAD0AA.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="13 终章：从自动注册到Linux内核OOP全貌"/></a><div class="content"><a class="title" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌">13 终章：从自动注册到Linux内核OOP全貌</a><time datetime="2026-05-23T07:46:00.000Z" title="发表于 2026-05-23 15:46:00">2026-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image33.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="12 完整框架：换硬件不改应用"/></a><div class="content"><a class="title" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用">12 完整框架：换硬件不改应用</a><time datetime="2026-05-14T02:28:00.000Z" title="发表于 2026-05-14 10:28:00">2026-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image32.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="11 接口设计：虚函数不实现会怎样"/></a><div class="content"><a class="title" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样">11 接口设计：虚函数不实现会怎样</a><time datetime="2026-05-06T13:03:00.000Z" title="发表于 2026-05-06 21:03:00">2026-05-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image26.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="10 多态与转型：一个指针管所有LED"/></a><div class="content"><a class="title" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED">10 多态与转型：一个指针管所有LED</a><time datetime="2026-04-29T05:14:00.000Z" title="发表于 2026-04-29 13:14:00">2026-04-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image22.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="09 ops/vtable：把一组函数指针装进对象"/></a><div class="content"><a class="title" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象">09 ops/vtable：把一组函数指针装进对象</a><time datetime="2026-04-20T23:38:00.000Z" title="发表于 2026-04-21 07:38:00">2026-04-21</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2026 By Rvosy</div><div class="footer_custom_text">I wish you to become your own sun, no need to rely on who's light.<p>
+<a target="_blank" href="https://beian.miit.gov.cn/">闽ICP备2024073898号-1</a>&nbsp;<p>
+<a target="_blank" href="https://hexo.io/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Frame-Hexo-blue.svg" title="博客框架为Hexo"></a>&nbsp;
+<a target="_blank" href="https://butterfly.js.org/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Theme-Butterfly-6513df.svg" title="主题采用butterfly"></a>&nbsp;
+<a target="_blank" href="https://vercel.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Hosted-Vervel-brightgreen.svg" title="本站采用双线部署，默认线路托管于Vercel"></a>&nbsp;
+<a target="_blank" href="https://github.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Source-Github-d021d6.svg" title="本站项目由Gtihub托管"></a>&nbsp;
+<a target="_blank" href="https://icp.gov.moe/?keyword=20249400"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/moeicp.svg" title="本站已加入萌ICP"></a>&nbsp;
+<a target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Copyright-BY--NC--SA%204.svg" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"></a></p>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.umd.min.js"></script><script src="https://oss.cialloo.cn/js/lazyload.iife.min.js"></script><div class="js-pjax"></div><span id="fps"></span><canvas id="universe"></canvas><script src="https://oss.cialloo.cn/js/jquery-3.6.0.min.js"></script><script defer src="/live2d/autoload.js"></script><script defer src="https://oss.cialloo.cn/js/universe.min.js"></script><script async src="https://oss.cialloo.cn/js/title.min.js"></script><script async src="https://oss.cialloo.cn/js/fps.min.js"></script><script async src="//npm.elemecdn.com/pace-js@1.2.4/pace.min.js"></script><script defer src="/js/cursor.js"></script><script defer src="/js/mouse.min.js"></script><script defer src="/js/custom-effects.js"></script><script src="https://oss.cialloo.cn/js/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

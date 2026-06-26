@@ -1,0 +1,355 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Rvosy的小破站 - Ciallo～(∠・ω&lt; )⌒★</title><meta name="author" content="Rvosy"><meta name="copyright" content="Rvosy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="いつも君の隣に、幸せな魔法がありますように">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rvosy的小破站">
+<meta property="og:url" content="https://cialloo.cn/page/2/index.html">
+<meta property="og:site_name" content="Rvosy的小破站">
+<meta property="og:description" content="いつも君の隣に、幸せな魔法がありますように">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cialloo.cn/img/avatar.webp">
+<meta property="article:author" content="Rvosy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cialloo.cn/img/avatar.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://cialloo.cn/page/2/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+          
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/egjs-infinitegrid/4.12.0/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Rvosy的小破站',
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2026-06-26 08:54:32'
+}</script><link rel="stylesheet" href="https://oss.cialloo.cn/css/universe.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="/css/font.css"><script>
+  if (localStorage.getItem('modelId') === null) {
+    localStorage.setItem('modelId', '0');
+  }
+  if (localStorage.getItem('modelTexturesId') === null) {
+    localStorage.setItem('modelTexturesId', '0');
+  }
+</script>
+<style>
+  body {
+    font-family: "LXGWWenKaiLite-Medium",-apple-system, Microsoft Yahei, sans-serif;
+    font-size: 16px;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(https://oss.cialloo.cn/img/top.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png" alt="Logo"><span class="site-name">Rvosy的小破站</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Rvosy的小破站</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/posts/641fbe2f/" title="03 信息隐藏：同事改一行，LED全乱了"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image9.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="03 信息隐藏：同事改一行，LED全乱了"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/641fbe2f/" title="03 信息隐藏：同事改一行，LED全乱了">03 信息隐藏：同事改一行，LED全乱了</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-26T14:15:00.000Z" title="发表于 2026-02-26 22:15:00">2026-02-26</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/C%E8%AF%AD%E8%A8%80%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">C语言面向对象</a></span></div><div class="content">03 信息隐藏：同事改一行，LED全乱了 C 语言 OOP 系列导航  C语言你真的会封装吗？ 三个LED写了三份代码？ 同事改一行，LED全乱了 ⇐ 当前位置 手搓class：前缀、init&#x2F;deinit和生命周期 你的全局变量，该死了 工业库也是同一套封装套路 struct嵌套消灭复制粘贴 写死的函数怎么换 把一组函数指针装进对象 一个指针管所有LED 虚函数不实现会怎样 换硬件不改应用 从自动注册到Linux内核OOP全貌   用 struct + me 把 LED 封装成对象之后，还不能停在这里。 如果结构体成员暴露在外，别人依然可以绕过接口直接改状态。这会带来一个嵌入式里很常见、也很恶心的问题：软件状态变了，硬件状态没变。 先看问题：直接改字段，硬件没跟着变假设 LED 对象长这样： 12345typedef struct &#123;    uint8_t pin;    uint8_t brightness;    bool is_on;&#125;...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/9aba809c/" title="02 封装：三个LED写了三份代码？"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image6.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="02 封装：三个LED写了三份代码？"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/9aba809c/" title="02 封装：三个LED写了三份代码？">02 封装：三个LED写了三份代码？</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-15T01:47:00.000Z" title="发表于 2026-02-15 09:47:00">2026-02-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/C%E8%AF%AD%E8%A8%80%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">C语言面向对象</a></span></div><div class="content">02 封装：三个LED写了三份代码？ C 语言 OOP 系列导航  C语言你真的会封装吗？ 三个LED写了三份代码？ ⇐ 当前位置 同事改一行，LED全乱了 手搓class：前缀、init&#x2F;deinit和生命周期 你的全局变量，该死了 工业库也是同一套封装套路 struct嵌套消灭复制粘贴 写死的函数怎么换 把一组函数指针装进对象 一个指针管所有LED 虚函数不实现会怎样 换硬件不改应用 从自动注册到Linux内核OOP全貌   刚开始写驱动时，很多人会按”设备名 + 动作”写函数： 1234567891011121314void red_led_on(void)&#123;    gpio_write(5, true);&#125;void green_led_on(void)&#123;    gpio_write(6, true);&#125;void blue_led_on(void)&#123;    gpio_write(7,...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/1ce15d3a/" title="01 总纲：C语言你真的会封装吗？"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image5.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="01 总纲：C语言你真的会封装吗？"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/1ce15d3a/" title="01 总纲：C语言你真的会封装吗？">01 总纲：C语言你真的会封装吗？</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-07T06:23:00.000Z" title="发表于 2026-02-07 14:23:00">2026-02-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/C%E8%AF%AD%E8%A8%80%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">C语言面向对象</a></span></div><div class="content">01 总纲：C语言你真的会封装吗？ C 语言 OOP 系列导航 本系列面向会 C 和单片机基础、刚进入企业项目的同学，从 struct 封装一路讲到 ops、多态和类 Linux 驱动框架。  C语言你真的会封装吗？ ⇐ 当前位置 三个LED写了三份代码？ 同事改一行，LED全乱了 手搓class：前缀、init&#x2F;deinit和生命周期 你的全局变量，该死了 工业库也是同一套封装套路 struct嵌套消灭复制粘贴 写死的函数怎么换 把一组函数指针装进对象 一个指针管所有LED 虚函数不实现会怎样 换硬件不改应用 从自动注册到Linux内核OOP全貌   刚进企业做嵌入式时，很多人把”能跑”当成第一目标。比如点三颗 LED，最直接的写法是每颗灯一套函数： 1234567void red_led_on(void);void green_led_on(void);void blue_led_on(void);void red_led_off(void);void green_led_off(void);void...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/b78655a4/" title="(Debug记录)编译器的-O3优化所导致Bug"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image16.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(Debug记录)编译器的-O3优化所导致Bug"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/b78655a4/" title="(Debug记录)编译器的-O3优化所导致Bug">(Debug记录)编译器的-O3优化所导致Bug</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-02-05T20:07:31.000Z" title="发表于 2026-02-06 04:07:31">2026-02-06</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Debug%E8%AE%B0%E5%BD%95/">Debug记录</a></span></div><div class="content">最近在写 Bootloader 配套的 App 时，遇到了一个非常”灵异”的问题：开启 -O3 后，程序读取 Flash 里的镜像 header 字段，结果永远是 0。尽管 Flash 里的数据已被脚本正确回填。 这篇记录一下整个踩坑过程，以及最终确定的根因： 常量传播（constant propagation）+ 编译器优化与”镜像后处理回填”之间的冲突。 背景：镜像 Header 放到 .app_header，CRC 由脚本回填我在 image_header.c 中定义了一个镜像头 g_image_header，放到 .app_header 段，里面包含版本号、CRC 等信息。img_crc32 会在编译完成后由 Python 脚本计算并回填到 bin 文件中。 image_header.c 123456789__attribute__((section(&quot;.app_header&quot;), used, aligned(4)))const image_hdr_t g_image_header = &#123;    .magic       =...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/d7749812/" title="使用 STM32CubeMX 部署 AI 模型"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/123.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="使用 STM32CubeMX 部署 AI 模型"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/d7749812/" title="使用 STM32CubeMX 部署 AI 模型">使用 STM32CubeMX 部署 AI 模型</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2026-01-31T08:07:00.000Z" title="发表于 2026-01-31 16:07:00">2026-01-31</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/AI-%E6%A8%A1%E5%9E%8B/">AI 模型</a></span></div><div class="content">使用 STM32CubeMX 部署 AI 模型一、环境搭建安装 X-CUBE-AI 打开 STM32CubeMX，在初始界面中选择 Help 选项 在弹窗中选择 Manage embedded software packages 选择最新版本的 X-CUBE-AI 进行安装    二、模型验证在正式部署前，我们需要先验证模型能否在 MCU 上正常运行。 新建工程 新建工程并初始化好时钟树 配置 USART 外设（用于输出调试信息）  启用 X-CUBE-AI在 CubeMX 中找到 X-CUBE-AI 选项并启用：   选择 X-CUBE-AI 折叠选项中的 Core 即可激活 AI 功能。下方有三种工作模式可选：    模式 用途 适用场景    SystemPerformance 评估推理时间、CPU 负载等性能指标 部署前的性能分析   Validation 验证模型转换后的准确性 检查量化&#x2F;压缩导致的精度损失   Application Template 提供业务代码框架 实际落地项目开发    💡 推荐流程：先使用 SystemPerformance...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/e8706fd6/" title="(转载)萝莉废萌作品推荐"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image5.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(转载)萝莉废萌作品推荐"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/e8706fd6/" title="(转载)萝莉废萌作品推荐">(转载)萝莉废萌作品推荐</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-12-23T12:07:00.000Z" title="发表于 2025-12-23 20:07:00">2025-12-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%B8%B8%E6%88%8F/">游戏</a></span></div><div class="content">前言 非常主观（）有些作品可能只是可爱并不怎么好玩（由于不会写评价所以只放图片和作品名了），但是能保证以下推荐的作品均没有雷点，如NTR等请放心游玩，本来想塞进去更多比如f社四大名著等剧情作，但是考虑到玩萝莉剧本上都是为了可爱和放松所有没有加进去  评分来源： 采用 Bangumi 番组计划 以及 VNDB 分别作为国内外玩家的参考（自评评分基本差不多的原因大概是因为都是废萌，所以给不到高分） 以下作品均没有大雷出现  作品列表灵感满溢的甜蜜创想（常轨脱离creative）   评分来源 评分    Bangumi 6.8&#x2F;10   VNDB 7.7&#x2F;10   自评 7&#x2F;10   锦亚澄（明日海）    金辉恋曲四重奏 -Golden Time   评分来源 评分    Bangumi 7.5&#x2F;10   VNDB 8&#x2F;10   自评 7&#x2F;10    作为本篇的FD添加了米娜线，推荐先游玩本篇再来游玩  米娜   Clover...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/fd6ce778/" title="2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/diansai.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/fd6ce778/" title="2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现">2025年电赛C题实战：基于单目视觉的目标物测量装置设计与实现</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-20T16:00:00.000Z" title="发表于 2025-08-21 00:00:00">2025-08-21</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%94%B5%E8%B5%9B/">电赛</a></span></div><div class="content">前言2025 年电赛 C 题的难点不在于识别图形，而在于如何在单目条件下把识别结果稳定地换算成真实尺寸。纯目标检测很容易得到类别和像素框，但题目要的是距离和边长。这套方案的思路是先用 A4 参考物建立尺度，再用几何分析和 YOLO 做目标筛选与测量。 下面直接讲方案里真正有用的部分。 整体方案系统围绕一张带黑边的 A4 参考板工作，完整链路如下：  摄像头采集固定分辨率图像。 在预设 ROI 内寻找 A4 黑边内轮廓。 对 A4 做透视校正，得到统一尺度的俯视图。 基础题直接在俯视图中做几何测量。 发挥题和发挥题二先在俯视图中运行 YOLO，再结合几何分析计算真实边长。  YOLO 只负责定位目标，尺度换算还是走 A4 参考物，这样可以绕开直接用检测框回推尺寸时精度不稳的问题。 基础题：先把 A4 参考系建立起来识别黑边内轮廓，不用外轮廓题目场景里有一条 5 mm 黑色基准线。参考板贴近地面时，外轮廓容易和背景基准线混在一起，所以代码直接用黑边内轮廓的实际尺寸： 12A4_WIDTH_MM = 170A4_HEIGHT_MM = 257  注意这里不是用标准 A4 的 210...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/arona.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="(Debug记录)PCF8591多通道数据篡位问题"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/f3d569c3/" title="(Debug记录)PCF8591多通道数据篡位问题">(Debug记录)PCF8591多通道数据篡位问题</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-12-19T00:07:00.000Z" title="发表于 2024-12-19 08:07:00">2024-12-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Debug%E8%AE%B0%E5%BD%95/">Debug记录</a></span></div><div class="content">问题描述在使用PCF8591不断轮流读取两个通道时, 发现数据出现了错位的问题例如: 12ad_p=Get_AD(1) //读取通道1的值ad_u=Get_AD(3) //读取通道3的值  可是使用数码管显示数据会发现一个很神奇的问题  ad_p显示的是通道3的ad值 ad_u显示的是通道1的ad值  两个数据出现了错位, 这不是我们想看到结果 问题定位打开数据手册7.4节关于ad转换的描述可以看到如下一段话:   译文:  读取周期中传输的第一个字节包含前一个读取周期的转换结果代码。  上电复位后，读取的第一个字节是十六进制 80。    原来PCF8591的AD转换需要时间, 所以会将转换结果储存到寄存器中, 下一次读取时直接将寄存器中的值直接发送出去 将开发板接上逻辑分析仪抓取波形验证  可以发现上电后第一次的读取结果确实是0x80, 而第二次读取的才是第一次设定的通道一的值, 从而导致之后的数据全是错位的 问题解决既然读取寄存器值的是上一次的值, 我们可以直接获取两次AD值就可以保证变量值一定是我们要的通道, 但是连续使用两次Get_AD();函数会产生很多性能开销,...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/f35c1f5b/" title="蓝桥杯单片机"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/10.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="蓝桥杯单片机"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/f35c1f5b/" title="蓝桥杯单片机">蓝桥杯单片机</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-12-01T00:07:00.000Z" title="发表于 2024-12-01 08:07:00">2024-12-01</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E8%93%9D%E6%A1%A5%E6%9D%AF/">蓝桥杯</a></span></div><div class="content">74HC573原理由于蓝桥杯板子上的外设很多, 所以开发板上使用了4个74HC573锁存器来复用引脚, 操控573上的外设由3个步骤组成   138译码器 将3位输入地址（A0, A1, A2）译码为8个独立的输出（D0 ~ D7）。这里我们只需要高4位也就是D4~D7的输出, 所以真值表为:     单片机P2 A0 A1 A2 D    0x80 1 0 0 1110 1111   0xA0 1 0 1 1101 1111   0xC0 1 1 0 1011 1111   0xD0 1 1 1 0111 1111    或非门 (NOR)      因为锁存器使能(Load)为高时，Q 输出将随数据（D）输入而变。当使能为低时，将输出锁存在已建立的数据电平上。我们需要锁存器默认为锁存状态, 即被38译码器选中时才进入透明状态, 所以开发板上使用一端接地的或非门来实现对38译码器选中信号取反   NOR真值表:    A0 A1 Y    0 0 1   0 1 0   1 0 0   1 1 0    74HC573锁存器 锁存器使能(Load)为高时，Q...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/5b4ac658/" title="Ros学习笔记"><img class="post-bg" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/rosnoetic.png" onerror="this.onerror=null;this.src='/img/404.png'" alt="Ros学习笔记"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/5b4ac658/" title="Ros学习笔记">Ros学习笔记</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-10-16T16:00:00.000Z" title="发表于 2024-10-17 00:00:00">2024-10-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></span></div><div class="content">ROS简介官网		Wiki The Robot Operating System (ROS) is a flexible framework for writing robot software. It is a collection of tools, libraries, and conventions that aim to simplify the task of creating complex and robust robot behavior across a wide variety of robotic platforms.  机器人操作系统（ROS）是一种用于编写机器人软件的灵活框架。 它是工具，库和协议的集合，旨在简化各种机器人平台上，去构建复杂而强大的机器人。 ROS 是 Robot Operating System的简写，翻译过来就是机器人操作系统。它是一个软件框架，目的是提供开发平台，工具及生态给开发人员，让开发人员快速的去开发强大的机器人系统。  ROS...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rvosy</div><div class="author-info-description">いつも君の隣に、幸せな魔法がありますように</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Rvosy"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/88C070BCA7F5067229454601F0DAD0AA.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="13 终章：从自动注册到Linux内核OOP全貌"/></a><div class="content"><a class="title" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌">13 终章：从自动注册到Linux内核OOP全貌</a><time datetime="2026-05-23T07:46:00.000Z" title="发表于 2026-05-23 15:46:00">2026-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image33.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="12 完整框架：换硬件不改应用"/></a><div class="content"><a class="title" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用">12 完整框架：换硬件不改应用</a><time datetime="2026-05-14T02:28:00.000Z" title="发表于 2026-05-14 10:28:00">2026-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image32.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="11 接口设计：虚函数不实现会怎样"/></a><div class="content"><a class="title" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样">11 接口设计：虚函数不实现会怎样</a><time datetime="2026-05-06T13:03:00.000Z" title="发表于 2026-05-06 21:03:00">2026-05-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image26.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="10 多态与转型：一个指针管所有LED"/></a><div class="content"><a class="title" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED">10 多态与转型：一个指针管所有LED</a><time datetime="2026-04-29T05:14:00.000Z" title="发表于 2026-04-29 13:14:00">2026-04-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image22.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="09 ops/vtable：把一组函数指针装进对象"/></a><div class="content"><a class="title" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象">09 ops/vtable：把一组函数指针装进对象</a><time datetime="2026-04-20T23:38:00.000Z" title="发表于 2026-04-21 07:38:00">2026-04-21</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/AI-%E6%A8%A1%E5%9E%8B/"><span class="card-category-list-name">AI 模型</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/C%E8%AF%AD%E8%A8%80%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/"><span class="card-category-list-name">C语言面向对象</span><span class="card-category-list-count">13</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Debug%E8%AE%B0%E5%BD%95/"><span class="card-category-list-name">Debug记录</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/"><span class="card-category-list-name">嵌入式</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%B8%B8%E6%88%8F/"><span class="card-category-list-name">游戏</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%94%B5%E8%B5%9B/"><span class="card-category-list-name">电赛</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%AE%97%E6%B3%95/"><span class="card-category-list-name">算法</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E8%93%9D%E6%A1%A5%E6%9D%AF/"><span class="card-category-list-name">蓝桥杯</span><span class="card-category-list-count">1</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E6%95%B0%E6%8D%AE%E5%BD%92%E4%BD%8D/" style="font-size: 1.1em; color: #999">数据归位</a> <a href="/tags/%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" style="font-size: 1.1em; color: #999">驱动框架</a> <a href="/tags/%E6%A8%A1%E5%9D%97%E5%8C%96/" style="font-size: 1.1em; color: #999">模块化</a> <a href="/tags/Linux/" style="font-size: 1.1em; color: #999">Linux</a> <a href="/tags/EIDE/" style="font-size: 1.1em; color: #999">EIDE</a> <a href="/tags/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" style="font-size: 1.1em; color: #999">生命周期</a> <a href="/tags/STL/" style="font-size: 1.1em; color: #999">STL</a> <a href="/tags/%E8%90%9D%E8%8E%89/" style="font-size: 1.1em; color: #999">萝莉</a> <a href="/tags/HAL/" style="font-size: 1.1em; color: #999">HAL</a> <a href="/tags/%E5%8F%AF%E7%88%B1/" style="font-size: 1.1em; color: #999">可爱</a> <a href="/tags/vtable/" style="font-size: 1.1em; color: #999">vtable</a> <a href="/tags/container-of/" style="font-size: 1.23em; color: #999ea6">container_of</a> <a href="/tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 1.1em; color: #999">AI模型</a> <a href="/tags/static/" style="font-size: 1.23em; color: #999ea6">static</a> <a href="/tags/C/" style="font-size: 1.1em; color: #999">C++</a> <a href="/tags/class/" style="font-size: 1.1em; color: #999">class</a> <a href="/tags/Linux%E5%86%85%E6%A0%B8/" style="font-size: 1.1em; color: #999">Linux内核</a> <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%9E%B6%E6%9E%84/" style="font-size: 1.1em; color: #999">嵌入式架构</a> <a href="/tags/%E5%B0%81%E8%A3%85/" style="font-size: 1.1em; color: #999">封装</a> <a href="/tags/Galgame/" style="font-size: 1.1em; color: #999">Galgame</a> <a href="/tags/%E7%BB%A7%E6%89%BF/" style="font-size: 1.1em; color: #999">继承</a> <a href="/tags/%E5%8D%95%E7%9B%AE%E8%A7%86%E8%A7%89/" style="font-size: 1.1em; color: #999">单目视觉</a> <a href="/tags/YOLO/" style="font-size: 1.1em; color: #999">YOLO</a> <a href="/tags/VSCode/" style="font-size: 1.1em; color: #999">VSCode</a> <a href="/tags/%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F/" style="font-size: 1.1em; color: #999">全局变量</a> <a href="/tags/%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88/" style="font-size: 1.23em; color: #999ea6">函数指针</a> <a href="/tags/Debug/" style="font-size: 1.23em; color: #999ea6">Debug</a> <a href="/tags/%E7%94%B5%E8%B5%9B/" style="font-size: 1.1em; color: #999">电赛</a> <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" style="font-size: 1.1em; color: #999">面向对象</a> <a href="/tags/ops/" style="font-size: 1.37em; color: #99a4b2">ops</a> <a href="/tags/CubeMX/" style="font-size: 1.1em; color: #999">CubeMX</a> <a href="/tags/%E8%99%9A%E5%87%BD%E6%95%B0/" style="font-size: 1.1em; color: #999">虚函数</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%94%A8/" style="font-size: 1.1em; color: #999">代码复用</a> <a href="/tags/%E5%8D%95%E7%89%87%E6%9C%BA/" style="font-size: 1.37em; color: #99a4b2">单片机</a> <a href="/tags/%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%86%8C/" style="font-size: 1.1em; color: #999">自动注册</a> <a href="/tags/%E4%BF%A1%E6%81%AF%E9%9A%90%E8%97%8F/" style="font-size: 1.1em; color: #999">信息隐藏</a> <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/" style="font-size: 1.5em; color: #99a9bf">嵌入式</a> <a href="/tags/OpenCV/" style="font-size: 1.1em; color: #999">OpenCV</a> <a href="/tags/%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1/" style="font-size: 1.1em; color: #999">接口设计</a> <a href="/tags/init/" style="font-size: 1.1em; color: #999">init</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/" title="查看更多"><i class="fas fa-angle-right"></i></a>
+    </div>
+    <ul class="card-archive-list">
+  
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2026/05/">
+          <span class="card-archive-list-date">五月 2026</span>
+          <span class="card-archive-list-count">3</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2026/04/">
+          <span class="card-archive-list-date">四月 2026</span>
+          <span class="card-archive-list-count">4</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2026/03/">
+          <span class="card-archive-list-date">三月 2026</span>
+          <span class="card-archive-list-count">3</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2026/02/">
+          <span class="card-archive-list-date">二月 2026</span>
+          <span class="card-archive-list-count">4</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2026/01/">
+          <span class="card-archive-list-date">一月 2026</span>
+          <span class="card-archive-list-count">1</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2025/12/">
+          <span class="card-archive-list-date">十二月 2025</span>
+          <span class="card-archive-list-count">1</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2025/08/">
+          <span class="card-archive-list-date">八月 2025</span>
+          <span class="card-archive-list-count">1</span>
+        </a>
+      </li>
+    
+      <li class="card-archive-list-item">
+        <a class="card-archive-list-link" href="/archives/2024/12/">
+          <span class="card-archive-list-date">十二月 2024</span>
+          <span class="card-archive-list-count">2</span>
+        </a>
+      </li>
+    </ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">23</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">34.7k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-06-26T00:54:31.714Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2026 By Rvosy</div><div class="footer_custom_text">I wish you to become your own sun, no need to rely on who's light.<p>
+<a target="_blank" href="https://beian.miit.gov.cn/">闽ICP备2024073898号-1</a>&nbsp;<p>
+<a target="_blank" href="https://hexo.io/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Frame-Hexo-blue.svg" title="博客框架为Hexo"></a>&nbsp;
+<a target="_blank" href="https://butterfly.js.org/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Theme-Butterfly-6513df.svg" title="主题采用butterfly"></a>&nbsp;
+<a target="_blank" href="https://vercel.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Hosted-Vervel-brightgreen.svg" title="本站采用双线部署，默认线路托管于Vercel"></a>&nbsp;
+<a target="_blank" href="https://github.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Source-Github-d021d6.svg" title="本站项目由Gtihub托管"></a>&nbsp;
+<a target="_blank" href="https://icp.gov.moe/?keyword=20249400"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/moeicp.svg" title="本站已加入萌ICP"></a>&nbsp;
+<a target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Copyright-BY--NC--SA%204.svg" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"></a></p>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.umd.min.js"></script><script src="https://oss.cialloo.cn/js/lazyload.iife.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://oss.cialloo.cn/js/typed.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  if (true) {
+    typedJSFn.init(["Hope you have a nice day!🍭🍭🍭"])
+  } else {
+    document.getElementById("subtitle").textContent = "Hope you have a nice day!🍭🍭🍭"
+  }
+}
+typedJSFn.run(subtitleType)</script></div><span id="fps"></span><canvas id="universe"></canvas><script src="https://oss.cialloo.cn/js/jquery-3.6.0.min.js"></script><script defer src="/live2d/autoload.js"></script><script defer src="https://oss.cialloo.cn/js/universe.min.js"></script><script async src="https://oss.cialloo.cn/js/title.min.js"></script><script async src="https://oss.cialloo.cn/js/fps.min.js"></script><script async src="//npm.elemecdn.com/pace-js@1.2.4/pace.min.js"></script><script defer src="/js/cursor.js"></script><script defer src="/js/mouse.min.js"></script><script defer src="/js/custom-effects.js"></script><script src="https://oss.cialloo.cn/js/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

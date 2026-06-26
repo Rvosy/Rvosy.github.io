@@ -1,0 +1,412 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>06 HAL映射：工业库也是同一套封装套路 | Rvosy的小破站</title><meta name="author" content="Rvosy"><meta name="copyright" content="Rvosy"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="06 HAL映射：工业库也是同一套封装套路 C 语言 OOP 系列导航  C语言你真的会封装吗？ 三个LED写了三份代码？ 同事改一行，LED全乱了 手搓class：前缀、init&#x2F;deinit和生命周期 你的全局变量，该死了 工业库也是同一套封装套路 ⇐ 当前位置 struct嵌套消灭复制粘贴 写死的函数怎么换 把一组函数指针装进对象 一个指针管所有LED 虚函数不实现会怎样 换硬件不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="06 HAL映射：工业库也是同一套封装套路">
+<meta property="og:url" content="https://cialloo.cn/posts/2a9c5fec/index.html">
+<meta property="og:site_name" content="Rvosy的小破站">
+<meta property="og:description" content="06 HAL映射：工业库也是同一套封装套路 C 语言 OOP 系列导航  C语言你真的会封装吗？ 三个LED写了三份代码？ 同事改一行，LED全乱了 手搓class：前缀、init&#x2F;deinit和生命周期 你的全局变量，该死了 工业库也是同一套封装套路 ⇐ 当前位置 struct嵌套消灭复制粘贴 写死的函数怎么换 把一组函数指针装进对象 一个指针管所有LED 虚函数不实现会怎样 换硬件不">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oss.cialloo.cn/img/image17.webp">
+<meta property="article:published_time" content="2026-03-29T12:41:00.000Z">
+<meta property="article:modified_time" content="2026-03-29T12:41:00.000Z">
+<meta property="article:author" content="Rvosy">
+<meta property="article:tag" content="C语言">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="HAL">
+<meta property="article:tag" content="STM32">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oss.cialloo.cn/img/image17.webp"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://cialloo.cn/posts/2a9c5fec/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+          
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":200,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/egjs-infinitegrid/4.12.0/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '06 HAL映射：工业库也是同一套封装套路',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-03-29 20:41:00'
+}</script><link rel="stylesheet" href="https://oss.cialloo.cn/css/universe.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="/css/font.css"><script>
+  if (localStorage.getItem('modelId') === null) {
+    localStorage.setItem('modelId', '0');
+  }
+  if (localStorage.getItem('modelTexturesId') === null) {
+    localStorage.setItem('modelTexturesId', '0');
+  }
+</script>
+<style>
+  body {
+    font-family: "LXGWWenKaiLite-Medium",-apple-system, Microsoft Yahei, sans-serif;
+    font-size: 16px;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (true) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://oss.cialloo.cn/img/84136296_p0.webp);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/favicon.png" alt="Logo"><span class="site-name">Rvosy的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">06 HAL映射：工业库也是同一套封装套路</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">06 HAL映射：工业库也是同一套封装套路</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-03-29T12:41:00.000Z" title="发表于 2026-03-29 20:41:00">2026-03-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-03-29T12:41:00.000Z" title="更新于 2026-03-29 20:41:00">2026-03-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/C%E8%AF%AD%E8%A8%80%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">C语言面向对象</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="06-HAL映射：工业库也是同一套封装套路"><a href="#06-HAL映射：工业库也是同一套封装套路" class="headerlink" title="06 HAL映射：工业库也是同一套封装套路"></a>06 HAL映射：工业库也是同一套封装套路</h1><blockquote>
+<p><strong>C 语言 OOP 系列导航</strong></p>
+<ol>
+<li><a href="https://cialloo.cn/posts/1ce15d3a/">C语言你真的会封装吗？</a></li>
+<li><a href="https://cialloo.cn/posts/9aba809c/">三个LED写了三份代码？</a></li>
+<li><a href="https://cialloo.cn/posts/641fbe2f/">同事改一行，LED全乱了</a></li>
+<li><a href="https://cialloo.cn/posts/fa69ba8d/">手搓class：前缀、init&#x2F;deinit和生命周期</a></li>
+<li><a href="https://cialloo.cn/posts/29e4242d/">你的全局变量，该死了</a></li>
+<li><a href="https://cialloo.cn/posts/2a9c5fec/">工业库也是同一套封装套路</a> ⇐ 当前位置</li>
+<li><a href="https://cialloo.cn/posts/e373ee02/">struct嵌套消灭复制粘贴</a></li>
+<li><a href="https://cialloo.cn/posts/61d0cea1/">写死的函数怎么换</a></li>
+<li><a href="https://cialloo.cn/posts/76cbb470/">把一组函数指针装进对象</a></li>
+<li><a href="https://cialloo.cn/posts/469013ba/">一个指针管所有LED</a></li>
+<li><a href="https://cialloo.cn/posts/bcef7dc5/">虚函数不实现会怎样</a></li>
+<li><a href="https://cialloo.cn/posts/48d30ece/">换硬件不改应用</a></li>
+<li><a href="https://cialloo.cn/posts/de107c76/">从自动注册到Linux内核OOP全貌</a></li>
+</ol>
+</blockquote>
+<p>前面讲的 <code>struct + me + static + init/deinit</code>，你在 STM32 HAL 这类工业库里看到的 GPIO、UART、SPI、TIM，用的也是同一套设计——只是它们操作的不是一颗 LED 的软件状态，而是一组硬件寄存器。</p>
+<h2 id="先看问题：HAL-函数一堆，看完就忘"><a href="#先看问题：HAL-函数一堆，看完就忘" class="headerlink" title="先看问题：HAL 函数一堆，看完就忘"></a>先看问题：HAL 函数一堆，看完就忘</h2><p>很多人第一次看 HAL，会被一堆函数名劝退：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">HAL_GPIO_Init();</span><br><span class="line">HAL_GPIO_DeInit();</span><br><span class="line">HAL_GPIO_WritePin();</span><br><span class="line">HAL_GPIO_ReadPin();</span><br><span class="line">HAL_GPIO_TogglePin();</span><br></pre></td></tr></table></figure>
+
+<p>再加上各种结构体和宏：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GPIO_TypeDef</span><br><span class="line">GPIO_InitTypeDef</span><br><span class="line">GPIOA</span><br><span class="line">GPIOB</span><br><span class="line">GPIO_PIN_5</span><br></pre></td></tr></table></figure>
+
+<p>看起来很复杂。拆开后你会发现：</p>
+<table>
+<thead>
+<tr>
+<th>HAL 元素</th>
+<th>本质</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GPIO_TypeDef</code></td>
+<td>用 <code>struct</code> 封装一组寄存器</td>
+</tr>
+<tr>
+<td><code>GPIOA/GPIOB</code></td>
+<td>同一类型的不同实例</td>
+</tr>
+<tr>
+<td><code>GPIO_TypeDef *GPIOx</code></td>
+<td>C 版 <code>me</code> 指针</td>
+</tr>
+<tr>
+<td><code>HAL_GPIO_</code></td>
+<td>模块前缀 &#x2F; 类名</td>
+</tr>
+<tr>
+<td><code>HAL_GPIO_Init()</code></td>
+<td>初始化 &#x2F; 构造</td>
+</tr>
+<tr>
+<td><code>.c</code> 里的 helper</td>
+<td><code>static</code> 私有实现</td>
+</tr>
+</tbody></table>
+<h2 id="GPIO-TypeDef：硬件寄存器对象"><a href="#GPIO-TypeDef：硬件寄存器对象" class="headerlink" title="GPIO_TypeDef：硬件寄存器对象"></a><code>GPIO_TypeDef</code>：硬件寄存器对象</h2><p>教学版可以这样理解：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">uint32_t</span> MODER;</span><br><span class="line">    <span class="type">uint32_t</span> OTYPER;</span><br><span class="line">    <span class="type">uint32_t</span> OSPEEDR;</span><br><span class="line">    <span class="type">uint32_t</span> PUPDR;</span><br><span class="line">    <span class="type">uint32_t</span> IDR;</span><br><span class="line">    <span class="type">uint32_t</span> ODR;</span><br><span class="line">    <span class="type">uint32_t</span> BSRR;</span><br><span class="line">    <span class="type">uint32_t</span> LCKR;</span><br><span class="line">&#125; GPIO_TypeDef;</span><br></pre></td></tr></table></figure>
+
+<p>和 LED 对象比较一下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">uint8_t</span> pin;</span><br><span class="line">    <span class="type">uint8_t</span> brightness;</span><br><span class="line">    <span class="type">bool</span> is_on;</span><br><span class="line">&#125; Led_t;</span><br></pre></td></tr></table></figure>
+
+<p>区别只是 <code>Led_t</code> 封装了 LED 的软件状态，<code>GPIO_TypeDef</code> 封装了一个 GPIO 端口的一组寄存器。</p>
+<h2 id="GPIOA-GPIOB：同一类型的多个实例"><a href="#GPIOA-GPIOB：同一类型的多个实例" class="headerlink" title="GPIOA/GPIOB：同一类型的多个实例"></a><code>GPIOA/GPIOB</code>：同一类型的多个实例</h2><p>可以把 GPIO 端口理解成多个实例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GPIO_TypeDef gpioa_regs;</span><br><span class="line">GPIO_TypeDef gpiob_regs;</span><br><span class="line">GPIO_TypeDef gpioc_regs;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOA (&amp;gpioa_regs)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB (&amp;gpiob_regs)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOC (&amp;gpioc_regs)</span></span><br></pre></td></tr></table></figure>
+
+<p>真实芯片里，<code>GPIOA</code> 通常是映射到固定硬件地址的指针。但理解上，它和我们写的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Led_t red_led;</span><br><span class="line">Led_t green_led;</span><br><span class="line">Led_t blue_led;</span><br></pre></td></tr></table></figure>
+
+<p>没有本质区别——同一个结构体类型，不同实例。</p>
+<h2 id="GPIOx-就是-me-指针"><a href="#GPIOx-就是-me-指针" class="headerlink" title="GPIOx 就是 me 指针"></a><code>GPIOx</code> 就是 <code>me</code> 指针</h2><p>HAL 函数常见形式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_WritePin</span><span class="params">(GPIO_TypeDef *GPIOx, <span class="type">uint16_t</span> pin, <span class="type">bool</span> value)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (GPIOx == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (value) &#123;</span><br><span class="line">        GPIOx-&gt;ODR |= pin;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        GPIOx-&gt;ODR &amp;= ~pin;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>GPIOx</code> 就是”这次操作哪个 GPIO 端口”。和 LED 代码里的 <code>me</code> 完全同构：</p>
+<table>
+<thead>
+<tr>
+<th>教学 LED</th>
+<th>HAL GPIO</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Led_t *me</code></td>
+<td><code>GPIO_TypeDef *GPIOx</code></td>
+</tr>
+<tr>
+<td><code>me-&gt;pin</code></td>
+<td><code>GPIOx-&gt;ODR</code></td>
+</tr>
+<tr>
+<td><code>led_on(&amp;red)</code></td>
+<td><code>HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true)</code></td>
+</tr>
+<tr>
+<td>对象指针决定操作谁</td>
+<td>端口指针决定操作哪个 GPIO</td>
+</tr>
+</tbody></table>
+<h2 id="HAL-GPIO-Init-：工业版构造函数"><a href="#HAL-GPIO-Init-：工业版构造函数" class="headerlink" title="HAL_GPIO_Init()：工业版构造函数"></a><code>HAL_GPIO_Init()</code>：工业版构造函数</h2><p>GPIO 初始化通常需要一份配置结构体：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">uint32_t</span> Pin;</span><br><span class="line">    <span class="type">uint32_t</span> Mode;</span><br><span class="line">    <span class="type">uint32_t</span> Pull;</span><br><span class="line">    <span class="type">uint32_t</span> Speed;</span><br><span class="line">    <span class="type">uint32_t</span> OType;</span><br><span class="line">&#125; GPIO_InitTypeDef;</span><br></pre></td></tr></table></figure>
+
+<p>初始化函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_Init</span><span class="params">(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *init)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (GPIOx == <span class="literal">NULL</span> || init == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> pin = <span class="number">0</span>; pin &lt; <span class="number">16</span>; pin++) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((init-&gt;Pin &amp; (<span class="number">1U</span> &lt;&lt; pin)) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        set_2bit_field(&amp;GPIOx-&gt;MODER, pin, init-&gt;Mode);</span><br><span class="line">        set_1bit_field(&amp;GPIOx-&gt;OTYPER, pin, init-&gt;OType);</span><br><span class="line">        set_2bit_field(&amp;GPIOx-&gt;OSPEEDR, pin, init-&gt;Speed);</span><br><span class="line">        set_2bit_field(&amp;GPIOx-&gt;PUPDR, pin, init-&gt;Pull);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这就是 <code>led_init()</code> 的工业版——检查参数、配置硬件、填充默认状态，步骤完全一样。</p>
+<h2 id="h-和-c-的分工也一样"><a href="#h-和-c-的分工也一样" class="headerlink" title=".h 和 .c 的分工也一样"></a><code>.h</code> 和 <code>.c</code> 的分工也一样</h2><p>HAL 头文件一般暴露公共接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_Init</span><span class="params">(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *init)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_DeInit</span><span class="params">(GPIO_TypeDef *GPIOx, <span class="type">uint32_t</span> pin)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_WritePin</span><span class="params">(GPIO_TypeDef *GPIOx, <span class="type">uint16_t</span> pin, <span class="type">bool</span> value)</span>;</span><br><span class="line"><span class="type">bool</span> <span class="title function_">HAL_GPIO_ReadPin</span><span class="params">(GPIO_TypeDef *GPIOx, <span class="type">uint16_t</span> pin)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">HAL_GPIO_TogglePin</span><span class="params">(GPIO_TypeDef *GPIOx, <span class="type">uint16_t</span> pin)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>源文件内部会有一堆辅助函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">set_2bit_field</span><span class="params">(<span class="type">uint32_t</span> *reg, <span class="type">int</span> pin, <span class="type">uint32_t</span> value)</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">set_1bit_field</span><span class="params">(<span class="type">uint32_t</span> *reg, <span class="type">int</span> pin, <span class="type">uint32_t</span> value)</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">bool</span> <span class="title function_">is_pin_valid</span><span class="params">(<span class="type">uint32_t</span> pin)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这和我们前面讲的 <code>.h = 菜单，.c = 后厨</code> 一样——公共接口曝光，内部细节用 <code>static</code> 隐藏。</p>
+<h2 id="换个视角看工业库"><a href="#换个视角看工业库" class="headerlink" title="换个视角看工业库"></a>换个视角看工业库</h2><p>学会这套映射后，再看 HAL 就不会只看到一堆函数名：</p>
+<table>
+<thead>
+<tr>
+<th>看源码时的问题</th>
+<th>应该找什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>这个模块的数据在哪里？</td>
+<td>找核心 <code>struct</code></td>
+</tr>
+<tr>
+<td>这次操作哪个对象？</td>
+<td>看第一个指针参数</td>
+</tr>
+<tr>
+<td>公共接口有哪些？</td>
+<td>看头文件函数声明</td>
+</tr>
+<tr>
+<td>内部细节在哪里？</td>
+<td>看 <code>.c</code> 的 <code>static</code> 函数</td>
+</tr>
+<tr>
+<td>初始化做了什么？</td>
+<td>看 <code>Init</code> 函数</td>
+</tr>
+<tr>
+<td>释放做了什么？</td>
+<td>看 <code>DeInit</code> 函数</td>
+</tr>
+</tbody></table>
+<p>下次再打开 HAL 的代码，试着用这个视角读：<code>UART_HandleTypeDef huart1</code> 就是在创建对象实例，<code>HAL_UART_Init(&amp;huart1)</code> 就是构造函数，<code>HAL_UART_Transmit(&amp;huart1, buf, 10, 100)</code> 就是给 <code>huart1</code> 发一条 Transmit 消息。不再是”调了一个库函数”，而是”向某个对象发了一条消息”。</p>
+<blockquote>
+<p>HAL 库几千个函数看起来复杂，骨架从来不复杂：<code>struct</code> 封装数据、指针指定对象、前缀组织接口、<code>Init/DeInit</code> 管生命周期。和我们从头手搓的 LED 驱动，同一套设计。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://cialloo.cn">Rvosy</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://cialloo.cn/posts/2a9c5fec/">https://cialloo.cn/posts/2a9c5fec/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://cialloo.cn" target="_blank">Rvosy的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C%E8%AF%AD%E8%A8%80/">C语言</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><a class="post-meta__tags" href="/tags/HAL/">HAL</a><a class="post-meta__tags" href="/tags/STM32/">STM32</a></div><div class="post-share"><div class="social-share" data-image="https://oss.cialloo.cn/img/image17.webp" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://lib.baomitu.com/social-share.js/1.0.16/css/share.min.css" media="print" onload="this.media='all'"><script src="https://lib.baomitu.com/social-share.js/1.0.16/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="prev-post pull-left" href="/posts/e373ee02/" title="07 继承：struct嵌套消灭复制粘贴"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image18.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">07 继承：struct嵌套消灭复制粘贴</div></div></a><a class="next-post pull-right" href="/posts/29e4242d/" title="05 数据归位：你的全局变量，该死了"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image11.jpeg.webp" onerror="onerror=null;src='/img/404.png'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">05 数据归位：你的全局变量，该死了</div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a href="/posts/1ce15d3a/" title="01 总纲：C语言你真的会封装吗？"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image5.jpeg.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-07</div><div class="title">01 总纲：C语言你真的会封装吗？</div></div></a><a href="/posts/9aba809c/" title="02 封装：三个LED写了三份代码？"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image6.jpeg.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-15</div><div class="title">02 封装：三个LED写了三份代码？</div></div></a><a href="/posts/61d0cea1/" title="08 函数指针：写死的函数怎么换"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image19.jpeg.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-13</div><div class="title">08 函数指针：写死的函数怎么换</div></div></a><a href="/posts/641fbe2f/" title="03 信息隐藏：同事改一行，LED全乱了"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image9.jpeg.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-02-26</div><div class="title">03 信息隐藏：同事改一行，LED全乱了</div></div></a><a href="/posts/29e4242d/" title="05 数据归位：你的全局变量，该死了"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image11.jpeg.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-17</div><div class="title">05 数据归位：你的全局变量，该死了</div></div></a><a href="/posts/e373ee02/" title="07 继承：struct嵌套消灭复制粘贴"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image18.webp" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-05</div><div class="title">07 继承：struct嵌套消灭复制粘贴</div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info is-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rvosy</div><div class="author-info-description">いつも君の隣に、幸せな魔法がありますように</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">23</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">50</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Rvosy"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Rvosy" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://space.bilibili.com/441427122" target="_blank" title="Bilibili"><i class="fab fa-bilibili"></i></a><a class="social-icon" href="mailto:g1790285359@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#06-HAL%E6%98%A0%E5%B0%84%EF%BC%9A%E5%B7%A5%E4%B8%9A%E5%BA%93%E4%B9%9F%E6%98%AF%E5%90%8C%E4%B8%80%E5%A5%97%E5%B0%81%E8%A3%85%E5%A5%97%E8%B7%AF"><span class="toc-number">1.</span> <span class="toc-text">06 HAL映射：工业库也是同一套封装套路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E7%9C%8B%E9%97%AE%E9%A2%98%EF%BC%9AHAL-%E5%87%BD%E6%95%B0%E4%B8%80%E5%A0%86%EF%BC%8C%E7%9C%8B%E5%AE%8C%E5%B0%B1%E5%BF%98"><span class="toc-number">1.1.</span> <span class="toc-text">先看问题：HAL 函数一堆，看完就忘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GPIO-TypeDef%EF%BC%9A%E7%A1%AC%E4%BB%B6%E5%AF%84%E5%AD%98%E5%99%A8%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.2.</span> <span class="toc-text">GPIO_TypeDef：硬件寄存器对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GPIOA-GPIOB%EF%BC%9A%E5%90%8C%E4%B8%80%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%A4%9A%E4%B8%AA%E5%AE%9E%E4%BE%8B"><span class="toc-number">1.3.</span> <span class="toc-text">GPIOA&#x2F;GPIOB：同一类型的多个实例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GPIOx-%E5%B0%B1%E6%98%AF-me-%E6%8C%87%E9%92%88"><span class="toc-number">1.4.</span> <span class="toc-text">GPIOx 就是 me 指针</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HAL-GPIO-Init-%EF%BC%9A%E5%B7%A5%E4%B8%9A%E7%89%88%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.</span> <span class="toc-text">HAL_GPIO_Init()：工业版构造函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#h-%E5%92%8C-c-%E7%9A%84%E5%88%86%E5%B7%A5%E4%B9%9F%E4%B8%80%E6%A0%B7"><span class="toc-number">1.6.</span> <span class="toc-text">.h 和 .c 的分工也一样</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8D%A2%E4%B8%AA%E8%A7%86%E8%A7%92%E7%9C%8B%E5%B7%A5%E4%B8%9A%E5%BA%93"><span class="toc-number">1.7.</span> <span class="toc-text">换个视角看工业库</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/88C070BCA7F5067229454601F0DAD0AA.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="13 终章：从自动注册到Linux内核OOP全貌"/></a><div class="content"><a class="title" href="/posts/de107c76/" title="13 终章：从自动注册到Linux内核OOP全貌">13 终章：从自动注册到Linux内核OOP全貌</a><time datetime="2026-05-23T07:46:00.000Z" title="发表于 2026-05-23 15:46:00">2026-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image33.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="12 完整框架：换硬件不改应用"/></a><div class="content"><a class="title" href="/posts/48d30ece/" title="12 完整框架：换硬件不改应用">12 完整框架：换硬件不改应用</a><time datetime="2026-05-14T02:28:00.000Z" title="发表于 2026-05-14 10:28:00">2026-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image32.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="11 接口设计：虚函数不实现会怎样"/></a><div class="content"><a class="title" href="/posts/bcef7dc5/" title="11 接口设计：虚函数不实现会怎样">11 接口设计：虚函数不实现会怎样</a><time datetime="2026-05-06T13:03:00.000Z" title="发表于 2026-05-06 21:03:00">2026-05-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image26.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="10 多态与转型：一个指针管所有LED"/></a><div class="content"><a class="title" href="/posts/469013ba/" title="10 多态与转型：一个指针管所有LED">10 多态与转型：一个指针管所有LED</a><time datetime="2026-04-29T05:14:00.000Z" title="发表于 2026-04-29 13:14:00">2026-04-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/image22.jpeg.webp" onerror="this.onerror=null;this.src='/img/404.png'" alt="09 ops/vtable：把一组函数指针装进对象"/></a><div class="content"><a class="title" href="/posts/76cbb470/" title="09 ops/vtable：把一组函数指针装进对象">09 ops/vtable：把一组函数指针装进对象</a><time datetime="2026-04-20T23:38:00.000Z" title="发表于 2026-04-21 07:38:00">2026-04-21</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2026 By Rvosy</div><div class="footer_custom_text">I wish you to become your own sun, no need to rely on who's light.<p>
+<a target="_blank" href="https://beian.miit.gov.cn/">闽ICP备2024073898号-1</a>&nbsp;<p>
+<a target="_blank" href="https://hexo.io/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Frame-Hexo-blue.svg" title="博客框架为Hexo"></a>&nbsp;
+<a target="_blank" href="https://butterfly.js.org/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Theme-Butterfly-6513df.svg" title="主题采用butterfly"></a>&nbsp;
+<a target="_blank" href="https://vercel.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Hosted-Vervel-brightgreen.svg" title="本站采用双线部署，默认线路托管于Vercel"></a>&nbsp;
+<a target="_blank" href="https://github.com/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Source-Github-d021d6.svg" title="本站项目由Gtihub托管"></a>&nbsp;
+<a target="_blank" href="https://icp.gov.moe/?keyword=20249400"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/moeicp.svg" title="本站已加入萌ICP"></a>&nbsp;
+<a target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://oss.cialloo.cn/img/Copyright-BY--NC--SA%204.svg" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"></a></p>
+</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.36/fancybox/fancybox.umd.min.js"></script><script src="https://oss.cialloo.cn/js/lazyload.iife.min.js"></script><div class="js-pjax"></div><span id="fps"></span><canvas id="universe"></canvas><script src="https://oss.cialloo.cn/js/jquery-3.6.0.min.js"></script><script defer src="/live2d/autoload.js"></script><script defer src="https://oss.cialloo.cn/js/universe.min.js"></script><script async src="https://oss.cialloo.cn/js/title.min.js"></script><script async src="https://oss.cialloo.cn/js/fps.min.js"></script><script async src="//npm.elemecdn.com/pace-js@1.2.4/pace.min.js"></script><script defer src="/js/cursor.js"></script><script defer src="/js/mouse.min.js"></script><script defer src="/js/custom-effects.js"></script><script src="https://oss.cialloo.cn/js/pjax.min.js"></script><script>(() => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => fn())
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      pjax.loadUrl('/404.html')
+    }
+  })
+})()</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
